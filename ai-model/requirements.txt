@@ -1,0 +1,8 @@
+# AI Models
+transformers>=4.30.0
+torch>=2.0.0
+keybert>=0.7.0
+sentence-transformers>=2.2.0
+
+# Utilities
+numpy>=1.21.0

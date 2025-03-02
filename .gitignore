@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Virtual Environments
+.venv/
+venv/
+env/
+
+# Environment Files
+.env
+.env.local
+.secrets
+
+# Frontend (React)
+node_modules/
+dist/
+build/
