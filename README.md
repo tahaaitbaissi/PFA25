@@ -7,3 +7,9 @@ pip install -r requirements.txt
 ```
 uvicorn main:app --reload
 ```
+
+## init DataBase
+```
+cd backend
+flask --app app init-db
+```
