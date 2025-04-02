@@ -50,3 +50,24 @@ def delete_article(article_id):
         return jsonify({"error": error}), 400
 
     return jsonify({"message": "Article deleted successfully"}), 200
+
+@bp.route("/search", methods=["GET"])
+def search_articles():
+    """Search articles by title or keywords."""
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "Query parameter is required"}), 400
+
+    articles = ArticleService.search_articles(query)
+    return jsonify(articles), 200
+
+
+@bp.route("/recommended", methods=["GET"])
+def get_recommended_articles():
+    """Retrieve recommended articles based on user ID."""
+    user_id = request.args.get("user_id")
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
+
+    articles = ArticleService.get_recommended_articles(user_id)
+    return jsonify(articles), 200

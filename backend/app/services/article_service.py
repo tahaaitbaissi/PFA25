@@ -1,9 +1,9 @@
 from bson import ObjectId
 from ..models.article import Article
+from ..services.newsapi_service import NewsAPIService
 from flask import current_app
 import requests
 from typing import Optional, Tuple, Dict, Any, List
-
 
 class ArticleService:
     @staticmethod
@@ -12,30 +12,63 @@ class ArticleService:
         return Article.get_all()
 
     @staticmethod
-    def get_article_by_id(article_id: str) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
-        """Retrieve an article by its ID."""
-        if not ObjectId.is_valid(article_id):
-            return None, "Invalid article ID format"
-
-        article = Article.get_by_id(article_id)
-        if not article:
-            return None, "Article not found"
-
-        return article, None
+    def get_recommended_articles(user_id: str) -> List[Dict[str, Any]]:
+        """Retrieve recommended articles based on user's interests (dummy logic for now)."""
+        articles = Article.get_all()
+        recommended = [article for article in articles if user_id in article.get("keywords", [])]
+        return recommended[:10]  # Limit recommendations
 
     @staticmethod
-    def _validate_title(title: str) -> bool:
-        return len(title) >= 5
+    def search_articles(query: str) -> List[Dict[str, Any]]:
+        """Search articles by title or keywords."""
+        all_articles = Article.get_all()
+        filtered_articles = [
+            article for article in all_articles
+            if query.lower() in article["title"].lower() or query.lower() in " ".join(article.get("keywords", [])).lower()
+        ]
+        return filtered_articles
 
     @staticmethod
-    def _validate_url(url: str) -> bool:
-        return url.startswith(("http://", "https://"))
+    def fetch_and_save_news():
+        """Fetch articles from NewsAPI, analyze them, and save to DB."""
+        news_data = NewsAPIService.get_top_headlines(country="us", page_size=5)
+
+        if "articles" not in news_data:
+            current_app.logger.error(f"Error fetching news: {news_data.get('error')}")
+            return
+
+        for news in news_data["articles"]:
+            title = news.get("title")
+            source_url = news.get("url")
+            
+            if not title or not source_url:
+                continue  # Skip invalid articles
+
+            content = NewsAPIService.fetch_full_content(source_url)
+            if not content:
+                continue  # Skip if content extraction fails
+
+            # Analyze content
+            analysis = ArticleService._analyze_content(content)
+            if not analysis:
+                continue  # Skip if AI analysis fails
+
+            # Save article
+            article = Article(
+                title=title,
+                content=content,
+                source_url=source_url,
+                ai_score=analysis["score"],
+                summary=analysis["summary"],
+                keywords=analysis["keywords"]
+            )
+            article.save()
 
     @staticmethod
     def _analyze_content(content: str) -> Optional[Dict[str, Any]]:
         """Send content to AI service to calculate score, generate summary, and extract keywords."""
         try:
-            response = requests.post("http://localhost:8000/analyze", json={"text": content})
+            response = requests.post("http://127.0.0.1:8000/analyze", json={"text": content})
             response.raise_for_status()
             data = response.json()
             return {
@@ -49,10 +82,9 @@ class ArticleService:
 
     @staticmethod
     def create_article(data: Dict[str, Any], user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[str], Optional[str]]:
-        """Validate and create a new article with AI-generated fields."""
+        """Validate and create a new article with AI-generated fields and Reddit posts."""
         required_fields = ["title", "content", "source_url"]
 
-        # Validate input data
         if not all(field in data for field in required_fields):
             return None, "Missing required fields"
 
@@ -62,19 +94,19 @@ class ArticleService:
         if not ArticleService._validate_url(data["source_url"]):
             return None, "Invalid source URL"
 
-        # Analyze content
         analysis = ArticleService._analyze_content(data["content"])
         if analysis is None:
             return None, "Failed to analyze content"
 
-        # Prepare AI data
         score = analysis["score"]
         summary = analysis["summary"]
         keywords = analysis["keywords"]
 
+        # Fetch related Reddit posts
+        related_reddit_posts = RedditService.search_reddit(data["title"])
+
         user_id = user["_id"] if user else None
 
-        # Create article instance
         article = Article(
             title=data["title"].strip(),
             content=data["content"].strip(),
@@ -83,9 +115,9 @@ class ArticleService:
             user_id=user_id,
             summary=summary,
             keywords=keywords,
+            related_reddit_posts=related_reddit_posts
         )
 
-        # Save to database
         try:
             article_id = article.save()
             return article_id, None
@@ -95,7 +127,7 @@ class ArticleService:
 
     @staticmethod
     def update_article(article_id: str, data: Dict[str, Any], user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[bool], Optional[str]]:
-        """Validate and update an existing article, regenerating AI fields if needed."""
+        """Validate and update an existing article, regenerating AI fields and Reddit posts if needed."""
         if not ObjectId.is_valid(article_id):
             return None, "Invalid article ID format"
 
@@ -108,13 +140,14 @@ class ArticleService:
 
         update_data = {k: v for k, v in data.items() if v is not None}
 
-        if "title" in update_data and not ArticleService._validate_title(update_data["title"]):
-            return None, "Title must be at least 5 characters long"
+        if "title" in update_data:
+            if not ArticleService._validate_title(update_data["title"]):
+                return None, "Title must be at least 5 characters long"
+            update_data["related_reddit_posts"] = RedditService.search_reddit(update_data["title"])
 
         if "source_url" in update_data and not ArticleService._validate_url(update_data["source_url"]):
             return None, "Invalid source URL"
 
-        # Recalculate AI-generated fields if content is updated
         if "content" in update_data:
             analysis = ArticleService._analyze_content(update_data["content"])
             if analysis is None:
@@ -128,21 +161,3 @@ class ArticleService:
         if success:
             return True, None
         return None, "Failed to update article"
-
-    @staticmethod
-    def delete_article(article_id: str, user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[bool], Optional[str]]:
-        """Delete an article, checking if the user has permission."""
-        if not ObjectId.is_valid(article_id):
-            return None, "Invalid article ID format"
-
-        article = Article.get_by_id(article_id)
-        if not article:
-            return None, "Article not found"
-
-        if article.get("user_id") and article["user_id"] != user["_id"]:
-            return None, "Permission denied: You can only delete your own articles"
-
-        success = Article.delete(article_id)
-        if success:
-            return True, None
-        return None, "Failed to delete article"

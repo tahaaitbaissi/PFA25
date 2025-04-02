@@ -1,6 +1,16 @@
 from flask import Flask
 from .config import DevelopmentConfig
 from . import db
+from .services.article_service import ArticleService
+from threading import Thread
+import time
+
+def start_cron_job(app):
+    while True:
+        print("Fetching latest news from NewsAPI...")
+        with app.app_context():
+            ArticleService.fetch_and_save_news()
+        time.sleep(1800)  # Run every 1 hour (adjust as needed)
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
@@ -9,9 +19,7 @@ def create_app(config_class=DevelopmentConfig):
     # Initialize MongoEngine
     db.init_app(app)
 
-    # Import and register blueprints here
-    # from .routes import auth_routes, article_routes
-    # app.register_blueprint(auth_routes.bp)
+    Thread(target=start_cron_job, args=(app,), daemon=True).start()
 
     from .routes import articles
     app.register_blueprint(articles.bp)

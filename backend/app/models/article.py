@@ -4,7 +4,7 @@ from ..db import get_db
 
 
 class Article:
-    def __init__(self, title, content, source_url, date_soumission=None, user_id=None, summary="", keywords=None, ai_score=None):
+    def __init__(self, title, content, source_url, date_soumission=None, user_id=None, summary="", keywords=None, ai_score=None, related_reddit_posts=None):
         self.title = title
         self.content = content
         self.source_url = source_url
@@ -13,7 +13,8 @@ class Article:
         self.summary = summary
         self.ai_score = ai_score
         self.keywords = keywords or []
-        
+        self.related_reddit_posts = related_reddit_posts or []
+
     def save(self):
         """Insert the article into the database."""
         db = get_db()
@@ -25,10 +26,11 @@ class Article:
             "date_soumission": self.date_soumission,
             "summary": self.summary,
             "keywords": self.keywords,
-            "user_id": self.user_id
+            "user_id": self.user_id,
+            "related_reddit_posts": self.related_reddit_posts
         }
         result = db.articles.insert_one(article_data)
-        return str(result.inserted_id)  # Return the inserted document's ID
+        return str(result.inserted_id)
 
     @staticmethod
     def get_all():
@@ -56,7 +58,8 @@ class Article:
             "date_soumission": self.date_soumission,
             "summary": self.summary,
             "keywords": self.keywords,
-            "user_id": self.user_id
+            "user_id": self.user_id,
+            "related_reddit_posts": self.related_reddit_posts
         }
         updated_article = db.articles.find_one_and_update(
             {"_id": ObjectId(article_id)},
@@ -64,10 +67,3 @@ class Article:
             return_document=True
         )
         return updated_article
-
-    @staticmethod
-    def delete(article_id):
-        """Delete an article by ID."""
-        db = get_db()
-        result = db.articles.delete_one({"_id": ObjectId(article_id)})
-        return result.deleted_count > 0  # Return True if an article was deleted
