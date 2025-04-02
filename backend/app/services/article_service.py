@@ -39,7 +39,7 @@ class ArticleService:
             response.raise_for_status()
             data = response.json()
             return {
-                "score": data.get("score"),
+                "score": data.get("is_fake"),
                 "summary": data.get("summary", "Summary not available"),
                 "keywords": data.get("keywords", [])
             }
@@ -68,7 +68,7 @@ class ArticleService:
             return None, "Failed to analyze content"
 
         # Prepare AI data
-        scoreai_score = analysis["score"]
+        score = analysis["score"]
         summary = analysis["summary"]
         keywords = analysis["keywords"]
 
@@ -79,7 +79,7 @@ class ArticleService:
             title=data["title"].strip(),
             content=data["content"].strip(),
             source_url=data["source_url"],
-        scoreai_score=score,
+            ai_score=score,
             user_id=user_id,
             summary=summary,
             keywords=keywords,

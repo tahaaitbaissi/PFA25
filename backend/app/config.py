@@ -4,6 +4,7 @@ class BaseConfig:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'super-secret-key')
     DEBUG = False
     TESTING = False
+    NEWS_API_KEY = "test"
 
     # MongoDB Configuration
     MONGO_DB_NAME = "fake_news"

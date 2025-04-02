@@ -15,5 +15,8 @@ def create_app(config_class=DevelopmentConfig):
 
     from .routes import articles
     app.register_blueprint(articles.bp)
+
+    from .routes import news
+    app.register_blueprint(news.bp)
     
     return app

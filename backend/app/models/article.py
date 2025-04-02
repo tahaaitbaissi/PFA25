@@ -4,14 +4,14 @@ from ..db import get_db
 
 
 class Article:
-    def __init__(self, title, content, source_url, ai_score, date_soumission=None, user_id=None, summary="", keywords=None):
+    def __init__(self, title, content, source_url, date_soumission=None, user_id=None, summary="", keywords=None, ai_score=None):
         self.title = title
         self.content = content
         self.source_url = source_url
-        self.ai_score = ai_score
         self.date_soumission = date_soumission or datetime.utcnow()
         self.user_id = user_id
         self.summary = summary
+        self.ai_score = ai_score
         self.keywords = keywords or []
         
     def save(self):
