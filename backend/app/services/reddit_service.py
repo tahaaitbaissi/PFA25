@@ -10,11 +10,11 @@ class RedditService:
             reddit = praw.Reddit(
                 client_id=current_app.config["REDDIT_CLIENT_ID"],
                 client_secret=current_app.config["REDDIT_CLIENT_SECRET"],
-                user_agent="news_fetcher"
+                user_agent="news"
             )
 
             results = []
-            for submission in reddit.subreddit("all").search(article_title, limit=5):
+            for submission in reddit.subreddit("all").search(article_title, limit=10):
                 results.append({
                     "title": submission.title,
                     "url": submission.url,

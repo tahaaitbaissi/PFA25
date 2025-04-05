@@ -1,6 +1,7 @@
 from bson import ObjectId
 from ..models.article import Article
 from ..services.newsapi_service import NewsAPIService
+from ..services.reddit_service import RedditService
 from flask import current_app
 import requests
 from typing import Optional, Tuple, Dict, Any, List
@@ -53,16 +54,30 @@ class ArticleService:
             if not analysis:
                 continue  # Skip if AI analysis fails
 
-            # Save article
+            score = analysis["score"]
+            summary = analysis["summary"]
+            keywords = analysis["keywords"]
+
+            # Fetch related Reddit posts
+            related_reddit_posts = RedditService.search_reddit(title)
+            print(title)
+
             article = Article(
-                title=title,
-                content=content,
+                title=title.strip(),
+                content=content.strip(),
                 source_url=source_url,
-                ai_score=analysis["score"],
-                summary=analysis["summary"],
-                keywords=analysis["keywords"]
+                ai_score=score,
+                summary=summary,
+                keywords=keywords,
+                related_reddit_posts=related_reddit_posts
             )
-            article.save()
+
+            try:
+                article_id = article.save()
+                return article_id, None
+            except Exception as e:
+                current_app.logger.error(f"Error saving article: {str(e)}")
+                return None, "Internal server error"
 
     @staticmethod
     def _analyze_content(content: str) -> Optional[Dict[str, Any]]:
@@ -104,6 +119,7 @@ class ArticleService:
 
         # Fetch related Reddit posts
         related_reddit_posts = RedditService.search_reddit(data["title"])
+        print(data["title"])
 
         user_id = user["_id"] if user else None
 
