@@ -10,13 +10,13 @@ def start_cron_job(app):
         print("Fetching latest news from NewsAPI...")
         with app.app_context():
             ArticleService.fetch_and_save_news()
-        time.sleep(1800)  # Run every 1 hour (adjust as needed)
+        time.sleep(1800)  # 30mins
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Initialize MongoEngine
+    # Initialize database
     db.init_app(app)
 
     Thread(target=start_cron_job, args=(app,), daemon=True).start()

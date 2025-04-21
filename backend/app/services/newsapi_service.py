@@ -44,7 +44,7 @@ class NewsAPIService:
             "sources": "bbc-news",
             "apiKey": api_key
         }
-
+#elastic search
         try:
             response = requests.get(url, params=params)
             data = response.json()
