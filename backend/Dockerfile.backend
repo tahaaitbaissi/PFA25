@@ -1,0 +1,26 @@
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install curl (optional for healthchecks)
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+# Pip config for stability
+RUN mkdir -p /root/.config/pip && \
+    echo "[global]" > /root/.config/pip/pip.conf && \
+    echo "index-url = https://pypi.org/simple" >> /root/.config/pip/pip.conf && \
+    echo "trusted-host = pypi.org files.pythonhosted.org" >> /root/.config/pip/pip.conf && \
+    echo "timeout = 60" >> /root/.config/pip/pip.conf && \
+    echo "retries = 5" >> /root/.config/pip/pip.conf
+
+RUN pip install --upgrade pip
+
+
+COPY requirements.txt .
+
+RUN pip install -r requirements.txt
+
+
+COPY . .
+
+EXPOSE 5000
+CMD ["flask", "run", "--host", "0.0.0.0"]

@@ -1,37 +1,77 @@
 from bson import ObjectId
+from ..db import get_db
 from ..models.article import Article
 from ..services.newsapi_service import NewsAPIService
 from ..services.reddit_service import RedditService
+from .opensearch_service import OpenSearchService
 from flask import current_app
 import requests
 from typing import Optional, Tuple, Dict, Any, List
 
 class ArticleService:
+    _os_instance = None  # Changed from _es_instance to _os_instance
+    
+    @classmethod
+    def get_opensearch(cls):
+        """Get the OpenSearch service instance"""
+        if cls._os_instance is None:
+            with current_app.app_context():
+                cls._os_instance = OpenSearchService(
+                    hosts=[current_app.config["OPENSEARCH_URL"]],
+                    http_auth=(
+                        current_app.config.get("OPENSEARCH_USER", "admin"),
+                        current_app.config.get("OPENSEARCH_PASSWORD", "admin")
+                    ),
+                    use_ssl=current_app.config.get("OPENSEARCH_USE_SSL", False),
+                    verify_certs=current_app.config.get("OPENSEARCH_VERIFY_CERTS", False)
+                )
+        return cls._os_instance
+
     @staticmethod
     def get_all_articles() -> List[Dict[str, Any]]:
-        """Retrieve all articles."""
-        return Article.get_all()
+        """Retrieve all articles from MongoDB and ensure they're indexed in OpenSearch"""
+        articles = Article.get_all()
+        for article in articles:
+            ArticleService.get_opensearch().index_article(article)
+        return articles
 
     @staticmethod
     def get_recommended_articles(user_id: str) -> List[Dict[str, Any]]:
-        """Retrieve recommended articles based on user's interests (dummy logic for now)."""
-        articles = Article.get_all()
-        recommended = [article for article in articles if user_id in article.get("keywords", [])]
-        return recommended[:10]  # Limit recommendations
+        """Retrieve recommended articles based on user's interests using OpenSearch"""
+        try:
+            # Use OpenSearch's search capabilities for better recommendations
+            return ArticleService.get_opensearch().search_recommendations(user_id)
+        except Exception as e:
+            current_app.logger.error(f"Error getting recommendations from OpenSearch: {str(e)}")
+            # Fallback to simple keyword matching
+            articles = Article.get_all()
+            recommended = [article for article in articles if user_id in article.get("keywords", [])]
+            return recommended[:10]
 
     @staticmethod
     def search_articles(query: str) -> List[Dict[str, Any]]:
-        """Search articles by title or keywords."""
-        all_articles = Article.get_all()
-        filtered_articles = [
-            article for article in all_articles
-            if query.lower() in article["title"].lower() or query.lower() in " ".join(article.get("keywords", [])).lower()
-        ]
-        return filtered_articles
+        """Search articles using OpenSearch with proper error handling"""
+        try:
+            return ArticleService.get_opensearch().search(query)
+        except Exception as e:
+            current_app.logger.error(f"OpenSearch search failed: {str(e)}")
+            # Fallback to MongoDB if OpenSearch fails
+            all_articles = Article.get_all()
+            return [
+                article for article in all_articles
+                if query.lower() in article["title"].lower() or 
+                query.lower() in " ".join(article.get("keywords", [])).lower()
+            ]
+
+    @staticmethod
+    def article_exists(url: str) -> bool:
+        """Check if an article with this URL already exists."""
+        db = get_db()
+        return bool(db.articles.find_one({"source_url": url}))
 
     @staticmethod
     def fetch_and_save_news():
-        """Fetch articles from NewsAPI, analyze them, and save to DB."""
+        """Fetch articles from NewsAPI, analyze them, and save to DB with OpenSearch indexing"""
         news_data = NewsAPIService.get_top_headlines(country="us", page_size=5)
 
         if "articles" not in news_data:
@@ -43,42 +83,41 @@ class ArticleService:
             source_url = news.get("url")
             
             if not title or not source_url:
-                continue  # Skip invalid articles
+                continue
+
+            if ArticleService.article_exists(source_url):
+                current_app.logger.debug(f"Article already exists: {source_url}")
+                continue
 
             content = NewsAPIService.fetch_full_content(source_url)
             if not content:
-                continue  # Skip if content extraction fails
+                continue
 
-            # Analyze content
             analysis = ArticleService._analyze_content(content)
             if not analysis:
-                continue  # Skip if AI analysis fails
+                continue
 
-            score = analysis["score"]
-            summary = analysis["summary"]
-            keywords = analysis["keywords"]
-
-            # Fetch related Reddit posts
             related_reddit_posts = RedditService.search_reddit(title)
-            print(title)
 
             article = Article(
                 title=title.strip(),
                 content=content.strip(),
                 source_url=source_url,
-                ai_score=score,
-                summary=summary,
-                keywords=keywords,
+                ai_score=analysis["score"],
+                summary=analysis["summary"],
+                keywords=analysis["keywords"],
                 related_reddit_posts=related_reddit_posts
             )
 
             try:
                 article_id = article.save()
+                saved_article = Article.get_by_id(article_id)
+                if saved_article:
+                    ArticleService.get_opensearch().index_article(saved_article)
                 return article_id, None
             except Exception as e:
                 current_app.logger.error(f"Error saving article: {str(e)}")
                 return None, "Internal server error"
-
     @staticmethod
     def _analyze_content(content: str) -> Optional[Dict[str, Any]]:
         """Send content to AI service to calculate score, generate summary, and extract keywords."""

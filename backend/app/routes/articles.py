@@ -71,3 +71,58 @@ def get_recommended_articles():
 
     articles = ArticleService.get_recommended_articles(user_id)
     return jsonify(articles), 200
+
+# Elastic Search end points
+@bp.route("/advanced-search", methods=["GET"])
+def advanced_search():
+    """Advanced search using Elasticsearch"""
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "Query parameter is required"}), 400
+    
+    articles = ArticleService.search_articles(query)
+    return jsonify(articles), 200
+
+@bp.route("/similar/<article_id>", methods=["GET"])
+def get_similar_articles(article_id):
+    """Find similar articles using Elasticsearch MLT"""
+    similar_articles = ArticleService.es.find_similar(article_id)
+    return jsonify(similar_articles), 200
+
+@bp.route("/stats/keywords", methods=["GET"])
+def get_keyword_stats():
+    """Get keyword statistics from Elasticsearch"""
+    try:
+        es = ElasticsearchService()
+        response = es.client.search(
+            index="articles",
+            body={
+                "size": 0,
+                "aggs": {
+                    "popular_keywords": {
+                        "terms": {
+                            "field": "keywords",
+                            "size": 10
+                        }
+                    },
+                    "fake_news_keywords": {
+                        "terms": {
+                            "field": "keywords",
+                            "size": 10,
+                            "include": {
+                                "partition": 0,
+                                "num_partitions": 1
+                            }
+                        },
+                        "aggs": {
+                            "fake_score": {
+                                "avg": {"field": "ai_score"}
+                            }
+                        }
+                    }
+                }
+            }
+        )
+        return jsonify(response["aggregations"]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
