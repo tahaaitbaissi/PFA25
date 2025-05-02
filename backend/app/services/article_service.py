@@ -97,7 +97,9 @@ class ArticleService:
             if not analysis:
                 continue
 
-            related_reddit_posts = RedditService.search_reddit(title)
+            top_keywords = analysis["keywords"][:2]
+            keyword_query = " ".join(top_keywords)
+            related_reddit_posts = RedditService.search_reddit(keyword_query, source_url)
 
             article = Article(
                 title=title.strip(),
