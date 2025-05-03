@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ..services.article_service import ArticleService
 from flask import g
+from flask import current_app # Import current_app for logging
 
 bp = Blueprint("articles", __name__, url_prefix="/articles")
 
@@ -22,10 +23,10 @@ def get_article(article_id):
 def create_article():
     """Create a new article."""
     data = request.json
-#    article_id, error = ArticleService.create_article(data, user=g.get("user"))
-    article_id, error = ArticleService.create_article(data)
+    article_id, error = ArticleService.create_article(data, user=g.get("user"))
 
     if error:
+        current_app.logger.error(f"Error creating article: {error}")
         return jsonify({"error": error}), 400
 
     return jsonify({"message": "Article created", "article_id": article_id}), 201
@@ -37,6 +38,7 @@ def update_article(article_id):
     success, error = ArticleService.update_article(article_id, data, user=g.get("user"))
 
     if error:
+        current_app.logger.error(f"Error updating article {article_id}: {error}")
         return jsonify({"error": error}), 400
 
     return jsonify({"message": "Article updated successfully"}), 200
@@ -47,16 +49,28 @@ def delete_article(article_id):
     success, error = ArticleService.delete_article(article_id, user=g.get("user"))
 
     if error:
+        current_app.logger.error(f"Error deleting article {article_id}: {error}")
         return jsonify({"error": error}), 400
 
     return jsonify({"message": "Article deleted successfully"}), 200
 
-@bp.route("/search", methods=["GET"])
-def search_articles():
-    """Search articles by title or keywords."""
+# --- OpenSearch Endpoints ---
+@bp.route("/basic-search", methods=["GET"])
+def basic_search_articles():
+    """Basic search articles by title or keywords using OpenSearch."""
     query = request.args.get("q", "").strip()
     if not query:
-        return jsonify({"error": "Query parameter is required"}), 400
+        return jsonify({"error": "Query parameter 'q' is required"}), 400
+
+    articles = ArticleService.search_articles(query)
+    return jsonify(articles), 200
+
+@bp.route("/search", methods=["GET"])
+def search_articles():
+    """Primary search endpoint using OpenSearch"""
+    query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify({"error": "Query parameter 'q' is required"}), 400
 
     articles = ArticleService.search_articles(query)
     return jsonify(articles), 200
@@ -64,7 +78,7 @@ def search_articles():
 
 @bp.route("/recommended", methods=["GET"])
 def get_recommended_articles():
-    """Retrieve recommended articles based on user ID."""
+    """Retrieve recommended articles based on user ID using OpenSearch."""
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"error": "User ID is required"}), 400
@@ -72,29 +86,25 @@ def get_recommended_articles():
     articles = ArticleService.get_recommended_articles(user_id)
     return jsonify(articles), 200
 
-# Elastic Search end points
-@bp.route("/advanced-search", methods=["GET"])
-def advanced_search():
-    """Advanced search using Elasticsearch"""
-    query = request.args.get("q", "").strip()
-    if not query:
-        return jsonify({"error": "Query parameter is required"}), 400
-    
-    articles = ArticleService.search_articles(query)
-    return jsonify(articles), 200
 
 @bp.route("/similar/<article_id>", methods=["GET"])
 def get_similar_articles(article_id):
-    """Find similar articles using Elasticsearch MLT"""
-    similar_articles = ArticleService.es.find_similar(article_id)
-    return jsonify(similar_articles), 200
+    """Find similar articles using OpenSearch MLT."""
+    try:
+        # Use the class method to get the OpenSearchService instance
+        os_service = ArticleService.get_opensearch()
+        similar_articles = os_service.find_similar(article_id)
+        return jsonify(similar_articles), 200
+    except Exception as e:
+        current_app.logger.error(f"Error finding similar articles for {article_id}: {str(e)}")
+        return jsonify({"error": "Failed to retrieve similar articles"}), 500
 
 @bp.route("/stats/keywords", methods=["GET"])
 def get_keyword_stats():
-    """Get keyword statistics from Elasticsearch"""
+    """Get keyword statistics from OpenSearch."""
     try:
-        es = ElasticsearchService()
-        response = es.client.search(
+        os_service = ArticleService.get_opensearch()
+        response = os_service.os.search(
             index="articles",
             body={
                 "size": 0,
@@ -102,20 +112,16 @@ def get_keyword_stats():
                     "popular_keywords": {
                         "terms": {
                             "field": "keywords",
-                            "size": 10
+                            "size": 10 # Top 10 popular keywords
                         }
                     },
                     "fake_news_keywords": {
                         "terms": {
                             "field": "keywords",
                             "size": 10,
-                            "include": {
-                                "partition": 0,
-                                "num_partitions": 1
-                            }
                         },
                         "aggs": {
-                            "fake_score": {
+                            "avg_ai_score": {
                                 "avg": {"field": "ai_score"}
                             }
                         }
@@ -123,6 +129,14 @@ def get_keyword_stats():
                 }
             }
         )
-        return jsonify(response["aggregations"]), 200
+
+        if "aggregations" in response:
+             return jsonify(response["aggregations"]), 200
+        else:
+             current_app.logger.warning("OpenSearch keyword stats query returned no aggregations.")
+             return jsonify({"message": "No keyword statistics found"}), 200
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        current_app.logger.error(f"Error getting keyword statistics from OpenSearch: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve keyword statistics"}), 500
+
