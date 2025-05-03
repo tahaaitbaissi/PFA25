@@ -265,41 +265,26 @@ class ArticleService:
 
         user_id = str(user["_id"]) if user and "_id" in user else None
 
-        article_data_for_db = {
-            "title": data["title"].strip(),
-            "content": data["content"].strip(),
-            "source_url": data["source_url"],
-            "ai_score": score,
-            "is_fake_label": is_fake_label,
-            "user_id": user_id,
-            "summary": summary,
-            "keywords": keywords,
-            "related_reddit_posts": related_reddit_posts,
-            "date_soumission": datetime.utcnow()
-        }
-
+        article = Article(
+                title=data["title"].strip(),
+                content=data["content"].strip(),
+                source_url=data["source_url"],
+                ai_score=analysis["score"],
+                is_fake_label=analysis["is_fake_label"],
+                user_id=user_id,
+                summary=analysis["summary"],
+                keywords=analysis["keywords"],
+                related_reddit_posts=related_reddit_posts
+            )
 
         try:
-            # Save to MongoDB
-            article_obj = Article(article_data_for_db)
-            article_id = article_obj.save()
-            current_app.logger.info(f"New article saved to MongoDB with ID: {article_id}")
-
-            # Index in OpenSearch
-            if hasattr(article_obj, '_id') and article_obj._id:
-                 os_service = ArticleService.get_opensearch()
-                 article_data_for_os = article_obj.to_dict()
-                 article_data_for_os['_id'] = str(article_obj._id)
-                 os_service.index_article(article_data_for_os)
-                 current_app.logger.info(f"New article ID {article_id} indexed in OpenSearch.")
-            else:
-                 current_app.logger.error(f"Could not get saved article object or ID for OpenSearch indexing for new article.")
-
-
-            return str(article_id), None
-
+            article_id = article.save()
+            saved_article = Article.get_by_id(article_id)
+            if saved_article:
+                ArticleService.get_opensearch().index_article(saved_article)
+            return article_id, None
         except Exception as e:
-            current_app.logger.error(f"Error saving or indexing new article: {str(e)}", exc_info=True)
+            current_app.logger.error(f"Error saving article: {str(e)}")
             return None, "Internal server error"
 
     @staticmethod
