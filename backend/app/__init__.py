@@ -53,8 +53,10 @@ def create_app(config_class=DevelopmentConfig):
     app.register_blueprint(common_auth.bp)
 
     from .routes import bookmark
-
     app.register_blueprint(bookmark.bp)
+
+    from .routes import comments
+    app.register_blueprint(comments.bp)
 
     # Start background job if not in reloader
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
