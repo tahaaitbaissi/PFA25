@@ -1,19 +1,46 @@
 from flask import Flask
+import os
 from .config import DevelopmentConfig
 from . import db
+from threading import Thread
+import time
+import socket
+
+def start_cron_job(app):
+    while True:
+        print("Fetching latest news from NewsAPI...")
+        with app.app_context():
+            from .services.article_service import ArticleService
+            article_service = ArticleService()
+            article_service.fetch_and_save_news()
+        print("Done!")
+        time.sleep(1800)  # 30mins
 
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
-
-    # Initialize MongoEngine
+    
+    # Initialize database
     db.init_app(app)
 
-    # Import and register blueprints here
-    # from .routes import auth_routes, article_routes
-    # app.register_blueprint(auth_routes.bp)
+    # Initialize OpenSearch index immediately
+    with app.app_context():
+        os_url = app.config.get("OPENSEARCH_URL", "http://localhost:9200")
+        from .services.opensearch_service import OpenSearchService
+        try:
+            OpenSearchService(os_url).create_index()
+        except Exception as e:
+            print(f"Warning: could not create OpenSearch index: {e}")
 
+    # Register blueprints
     from .routes import articles
     app.register_blueprint(articles.bp)
+
+    from .routes import news
+    app.register_blueprint(news.bp)
+    
+    # Start background job if not in reloader
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        Thread(target=start_cron_job, args=(app,), daemon=True).start()
     
     return app

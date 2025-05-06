@@ -4,6 +4,10 @@ class BaseConfig:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'super-secret-key')
     DEBUG = False
     TESTING = False
+    NEWS_API_KEY = "222363ea5db04790a4ba63187ecbdc23"
+    REDDIT_CLIENT_ID = "clfCIUEbRRYe2g1Ox5XavQ"
+    REDDIT_CLIENT_SECRET = "t6jIghgiOF4QP-R4JsVA71lLFBmHSA"
+    OPENSEARCH_URL = "http://localhost:9200"
 
     # MongoDB Configuration
     MONGO_DB_NAME = "fake_news"

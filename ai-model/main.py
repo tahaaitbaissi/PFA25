@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 from models.fake_news import detect_fake_news
 from models.summarizer import summarize_text
 from models.keywords import extract_keywords
@@ -23,3 +24,6 @@ async def analyze_article(request: ArticleRequest):
         "summary": summary,
         "keywords": keywords
     }
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
