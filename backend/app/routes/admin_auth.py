@@ -4,8 +4,10 @@ from ..models.user import User
 from ..db import get_db
 from .common_auth import token_required
 from ..services.article_service import ArticleService
-import jwt
-from datetime import datetime, timedelta
+from ..models.notification import Notification
+from ..sockets.notifications import send_notification
+from .. import socketio
+from datetime import datetime
 
 bp = Blueprint('admin', __name__, url_prefix='/admin_auth')
 
@@ -45,7 +47,6 @@ def unsuspend_user(current_user, user_id):
 @bp.route('/articles', methods=['GET'])
 @token_required
 def list_articles(current_user):
-    """Liste tous les articles (accès admin seulement)"""
     if current_user["role"] != "admin":
         return jsonify({"error": "Accès refusé"}), 403
 
@@ -59,13 +60,10 @@ def list_articles(current_user):
 @bp.route('/articles/<article_id>', methods=['DELETE'])
 @token_required
 def admin_delete_article(current_user, article_id):
-    """Suppression forcée par un admin (contourne les vérifications de propriété)"""
     if current_user["role"] != "admin":
         return jsonify({"error": "Accès refusé"}), 403
 
-    # On utilise la méthode existante mais en passant None comme user pour bypass les vérifications
     success, error = ArticleService.delete_article(article_id, user=None)
-
     if error:
         return jsonify({"error": error}), 400
     return jsonify({"message": "Article supprimé avec succès"}), 200
@@ -78,13 +76,11 @@ def get_demandes_admin(current_user):
         return jsonify({"error": "Accès réservé aux admins"}), 403
 
     db = get_db()
-    # Récupère TOUTES les demandes (même score=0)
     demandes = list(db.users.find(
         {"admin_request": True},
         {"username": 1, "points": 1, "email": 1, "_id": 1}
     ))
 
-    # Convertit ObjectId en string pour le frontend
     for d in demandes:
         d["_id"] = str(d["_id"])
 
@@ -97,14 +93,42 @@ def valider_admin(current_user, user_id):
     if current_user["role"] != "admin":
         return jsonify({"error": "Action non autorisée"}), 403
 
-    db = get_db()
-    user = db.users.find_one({"_id": ObjectId(user_id)})
+    try:
+        # Validate and convert to ObjectId
+        user_oid = ObjectId(user_id)
+    except InvalidId:
+        return jsonify({"error": "ID utilisateur invalide"}), 400
 
+    db = get_db()
+    user = db.users.find_one({"_id": user_oid})
+
+    # Update user role
     db.users.update_one(
         {"_id": ObjectId(user_id)},
         {"$set": {"role": "admin", "admin_request": False}}
     )
-    return jsonify({"message": f"{user['username']} est maintenant admin !"}), 200
+
+    # Create and send notification using the model
+    content = f"Félicitations {user['username']}! Votre demande admin a été approuvée."
+    notification = Notification.create_and_send(
+        user_id,
+        content,
+        "admin_approval"
+    )
+
+    # Send socket notification
+    send_notification(socketio, str(user_id), {
+        "notification_id": str(notification["_id"]),
+        "content": content,
+        "type": "admin_approval",
+        "created_at": datetime.utcnow().isoformat(),
+        "is_read": False
+    })
+
+    return jsonify({
+        "message": f"{user['username']} est maintenant admin !",
+        "notification_sent": True
+    }), 200
 
 
 @bp.route('/refuser-admin/<user_id>', methods=['POST'])
@@ -114,8 +138,34 @@ def refuser_admin(current_user, user_id):
         return jsonify({"error": "Action non autorisée"}), 403
 
     db = get_db()
+    user = db.users.find_one({"_id": ObjectId(user_id)})
+    if not user:
+        return jsonify({"error": "Utilisateur non trouvé"}), 404
+
+    # Update user request status
     db.users.update_one(
         {"_id": ObjectId(user_id)},
         {"$set": {"admin_request": False}}
     )
-    return jsonify({"message": "Demande refusée avec succès"}), 200
+
+    # Create and send notification using the model
+    content = f"Votre demande admin a été refusée. Contactez le support pour plus d'informations."
+    notification = Notification.create_and_send(
+        user_id,
+        content,
+        "admin_rejection"
+    )
+
+    # Send socket notification
+    send_notification(socketio, str(user_id), {
+        "notification_id": str(notification["_id"]),
+        "content": content,
+        "type": "admin_rejection",
+        "created_at": datetime.utcnow().isoformat(),
+        "is_read": False
+    })
+
+    return jsonify({
+        "message": "Demande refusée avec succès",
+        "notification_sent": True
+    }), 200

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Socket.IO Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="output"></div>
+
+    <script>
+        // Connect to server with proper configuration
+        const socket = io('http://localhost:5000', {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+            query: { token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNjgxYTViZjQ5NzAxNmE3Y2M4OWU4ZjBjIiwiZXhwIjoxNzQ2NTY1NTkyfQ.Cj_B2qReTSBdoWzR1Ifg-DT_8bfoscfwdSRj8Qbfi30' }
+        });
+
+        const statusEl = document.getElementById('status');
+        const outputEl = document.getElementById('output');
+
+        function log(message) {
+            console.log(message);
+            outputEl.innerHTML += `<p>${message}</p>`;
+        }
+        socket.on('connect', () => {
+            statusEl.textContent = 'Connected!';
+            log('Successfully connected to server');
+        });
+
+        socket.on('connect_error', (err) => {
+            statusEl.textContent = 'Connection failed';
+            log(`Error: ${err.message}`);
+        });
+
+        socket.on('disconnect', (reason) => {
+            statusEl.textContent = 'Disconnected';
+            log(`Disconnected: ${reason}`);
+        });
+
+        // Listen for new_notification events
+        socket.on('new_notification', (data) => {
+            log(` New notification received: ${JSON.stringify(data)}`);
+            alert(`New Notification: ${data.message || 'You have a new notification!'}`);
+        });
+    </script>
+</body>
+</html>

@@ -1,15 +1,15 @@
 from flask import jsonify, request, current_app
 from bson import ObjectId
-import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Dict, Any
 from ..db import get_db
 from flask import Blueprint
 
 
-bp= Blueprint('common_auth', __name__,url_prefix='/auth')
+bp = Blueprint('common_auth', __name__, url_prefix='/auth')
+
+
 def generate_refresh_token(user_id):
     refresh_token = jwt.encode(
         {"user_id": user_id, "exp": datetime.utcnow() + timedelta(days=30)},
@@ -18,10 +18,11 @@ def generate_refresh_token(user_id):
     )
     return refresh_token
 
+
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get('Authorization', None)
+        auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith("Bearer "):
             return jsonify({"error": "Token manquant ou mal formé"}), 401
 
@@ -42,3 +43,23 @@ def token_required(f):
 
         return f(current_user, *args, **kwargs)
     return decorated_function
+
+
+def socket_token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.args.get('token')
+        if not token:
+            return False
+
+        try:
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = get_db().users.find_one({"_id": ObjectId(data["user_id"])})
+            if not current_user:
+                return False
+        except Exception:
+            return False
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated

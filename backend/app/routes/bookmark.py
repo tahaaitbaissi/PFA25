@@ -3,6 +3,9 @@ from bson import ObjectId
 from ..models.bookmark import Bookmark
 from ..db import get_db
 from .common_auth import token_required
+from ..models.notification import Notification
+from ..sockets.notifications import send_notification
+from .. import socketio
 
 bp = Blueprint('bookmark', __name__, url_prefix='/bookmark')
 
@@ -17,6 +20,23 @@ def add_bookmark(current_user):
 
     bookmark = Bookmark(user_id=current_user["_id"], article_id=ObjectId(article_id))
     bookmark.save()
+
+    db = get_db()
+    article = db.articles.find_one({"_id": ObjectId(article_id)})
+    if article and str(article["user_id"]) != str(current_user["_id"]):
+        content = f"{current_user['username']} a ajouté votre article '{article['title']}' à ses favoris"
+        notification = Notification.create_and_send(
+            article["user_id"],
+            content,
+            "bookmark",
+            article_id
+        )
+        send_notification(socketio,str(article["user_id"]), {
+            "notification_id": str(notification["_id"]),
+            "content": content,
+            "type": "bookmark",
+            "reference_id": article_id
+        })
 
     return jsonify({"message": "Article ajouté aux favoris"}), 201
 
