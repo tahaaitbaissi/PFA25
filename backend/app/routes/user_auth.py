@@ -72,10 +72,12 @@ def login():
 @bp.route('/profile', methods=['GET'])
 @token_required
 def profile(current_user):
-
-    user_data = {key: str(value) if isinstance(value, ObjectId) else value for key, value in current_user.items() if
-                 key != "password"}
-
+    user_data = {
+        "username": current_user["username"],
+        "email": current_user["email"],
+        "points": current_user.get("points", 0),
+        "role": current_user["role"]
+    }
     return jsonify({"user": user_data}), 200
 
 
@@ -144,6 +146,8 @@ def submit_article(current_user):
 
     if error:
         return jsonify({"error": error}), 400
+
+    User.add_points(current_user["_id"], 20)
 
     return jsonify({
         "message": "Article soumis avec succès",

@@ -4,6 +4,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from datetime import datetime
 
+from ..models.user import User
 from ..sockets.notifications import send_notification
 from ..services.comment_service import CommentService
 from ..models.notification import Notification
@@ -29,6 +30,8 @@ def add_comment(current_user):
         return jsonify({"error": "Invalid article ID format"}), 400
 
     comment_id = CommentService.add_comment(str(current_user["_id"]), article_id, content)
+
+    User.add_points(current_user["_id"], 10)
 
     # Get article info to create notification
     db = get_db()

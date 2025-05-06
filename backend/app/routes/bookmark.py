@@ -4,6 +4,7 @@ from ..models.bookmark import Bookmark
 from ..db import get_db
 from .common_auth import token_required
 from ..models.notification import Notification
+from ..models.user import User
 from ..sockets.notifications import send_notification
 from .. import socketio
 
@@ -20,6 +21,8 @@ def add_bookmark(current_user):
 
     bookmark = Bookmark(user_id=current_user["_id"], article_id=ObjectId(article_id))
     bookmark.save()
+
+    User.add_points(current_user["_id"], 5)
 
     db = get_db()
     article = db.articles.find_one({"_id": ObjectId(article_id)})

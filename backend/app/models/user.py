@@ -72,3 +72,12 @@ class User:
             {"_id": ObjectId(user_id)},
             {"$set": {"is_suspended": suspended}}
         )
+
+    @staticmethod
+    def add_points(user_id, points_to_add):
+        db = get_db()
+        result = db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$inc": {"points": points_to_add}}
+        )
+        return result.modified_count > 0
