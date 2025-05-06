@@ -52,6 +52,10 @@ def create_app(config_class=DevelopmentConfig):
     from .routes import common_auth
     app.register_blueprint(common_auth.bp)
 
+    from .routes import bookmark
+
+    app.register_blueprint(bookmark.bp)
+
     # Start background job if not in reloader
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         Thread(target=start_cron_job, args=(app,), daemon=True).start()
