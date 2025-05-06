@@ -63,3 +63,14 @@ def socket_token_required(f):
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+from functools import wraps
+from flask import jsonify
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(current_user, *args, **kwargs):
+        if current_user.get('role') != 'admin':
+            return jsonify({"error": "Admin access required"}), 403
+        return f(current_user, *args, **kwargs)
+    return decorated_function

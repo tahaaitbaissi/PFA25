@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify,request,current_app
 from bson import ObjectId
 import bcrypt
 from datetime import datetime
+
+from ..models.category import Category
 from ..models.user import User
 from ..db import get_db
 from .common_auth import token_required, generate_refresh_token
@@ -29,6 +31,20 @@ def register():
 
     user = User(username=username, email=email, password=hashed_pw)
     user_id = user.save()
+
+    # Add default categories to new user
+    default_categories = ["Technology", "Science", "Business"]
+    for cat_name in default_categories:
+        # Find or create category
+        db = get_db()
+        category = db.categories.find_one({"label": cat_name})
+        if not category:
+            category_id = Category.create(cat_name)
+        else:
+            category_id = str(category["_id"])
+
+        # Add to user
+        User.add_category(user_id, category_id)
 
     return jsonify({"message": "Utilisateur enregistré avec succès", "user_id": str(user_id)}), 201
 
@@ -72,11 +88,13 @@ def login():
 @bp.route('/profile', methods=['GET'])
 @token_required
 def profile(current_user):
+    categories = User.get_categories(current_user["_id"])
     user_data = {
         "username": current_user["username"],
         "email": current_user["email"],
         "points": current_user.get("points", 0),
-        "role": current_user["role"]
+        "role": current_user["role"],
+        "categories": categories
     }
     return jsonify({"user": user_data}), 200
 

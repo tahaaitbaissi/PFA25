@@ -81,3 +81,19 @@ class User:
             {"$inc": {"points": points_to_add}}
         )
         return result.modified_count > 0
+
+   
+    @staticmethod
+    def add_category(user_id, category_id):
+        from ..models.user_category import UserCategory
+        return UserCategory.add_category_to_user(user_id, category_id)
+
+    @staticmethod
+    def get_categories(user_id):
+        from ..models.user_category import UserCategory
+        return UserCategory.get_user_categories(user_id)
+
+    @staticmethod
+    def remove_category(user_id, category_id):
+        from ..models.user_category import UserCategory
+        return UserCategory.remove_category_from_user(user_id, category_id)

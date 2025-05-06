@@ -69,6 +69,10 @@ def create_app(config_class=DevelopmentConfig):
     from .routes import notifications
     app.register_blueprint(notifications.bp)
 
+    from .routes import categories
+    app.register_blueprint(categories.bp)
+
+
     # Initialize SocketIO with app
     socketio.init_app(app)
 
