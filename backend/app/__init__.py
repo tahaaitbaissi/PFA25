@@ -6,6 +6,7 @@ from threading import Thread
 import time
 import socket
 
+
 def start_cron_job(app):
     while True:
         print("Fetching latest news from NewsAPI...")
@@ -38,7 +39,19 @@ def create_app(config_class=DevelopmentConfig):
 
     from .routes import news
     app.register_blueprint(news.bp)
-    
+
+    # from .routes import auth
+    # app.register_blueprint(auth.bp)
+
+    from .routes import admin_auth
+    app.register_blueprint(admin_auth.bp)
+
+    from .routes import user_auth
+    app.register_blueprint(user_auth.bp)
+
+    from .routes import common_auth
+    app.register_blueprint(common_auth.bp)
+
     # Start background job if not in reloader
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         Thread(target=start_cron_job, args=(app,), daemon=True).start()
