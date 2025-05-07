@@ -1,10 +1,36 @@
 # Project Setup Guide
 
+## Environment Setup
+
+Before running the services, you need to set up a virtual environment in both the `ai-model` and `backend` directories.
+
+### 1. Set Up Virtual Environments
+
+#### For the AI Service
+
+```bash
+cd ai-model
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+pip install -r requirements.txt
+```
+
+#### For the Backend
+
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate  # On Windows
+pip install -r requirements.txt
+```
+
+---
+
 ## How to Run the Project
 
 ### 1. Start OpenSearch
 
-Make sure Docker is running, then from the project root:
+Make sure Docker is running (Docker needs to be installed[Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/)), then from the project root:
 
 ```bash
 docker-compose up -d
@@ -23,7 +49,7 @@ docker ps
 In a new terminal (PowerShell or command prompt):
 
 ```bash
-cd ai_model
+cd ai-model
 .venv\Scripts\activate
 python main.py
 ```
@@ -56,5 +82,3 @@ You can get the container name using:
 ```bash
 docker ps
 ```
-
----
