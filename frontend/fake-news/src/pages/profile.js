@@ -37,6 +37,10 @@ function Profile() {
     navigate('/edit-profile');
   };
 
+  const handleAdminRequest = () => {
+    navigate('/admin-request');
+  };
+
   if (!user) return <Typography>Chargement...</Typography>;
 
   return (
@@ -47,17 +51,20 @@ function Profile() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f7f9fc',
+        backgroundImage: 'url(https://source.unsplash.com/random/1600x900/?technology)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         py: 4,
       }}
     >
       <Card
-        elevation={4}
+        elevation={6}
         sx={{
           width: '100%',
           borderRadius: 4,
           p: 3,
-          background: '#ffffff',
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(6px)',
         }}
       >
         <Stack spacing={2} alignItems="center">
@@ -82,7 +89,7 @@ function Profile() {
           </Stack>
         </CardContent>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Button
             variant="contained"
             fullWidth
@@ -92,6 +99,19 @@ function Profile() {
           >
             Modifier le profil
           </Button>
+
+          {!user.isAdmin && (
+            <Button
+              variant="contained"
+              fullWidth
+              color="secondary"
+              onClick={handleAdminRequest}
+              sx={{ textTransform: 'none', borderRadius: 2 }}
+            >
+              Demander à devenir admin
+            </Button>
+          )}
+
           <Button
             variant="outlined"
             fullWidth
