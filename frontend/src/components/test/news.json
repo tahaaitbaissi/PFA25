@@ -1,4 +1,4 @@
-{
+const data = {
   "articles": [
   {
     "_id": {
@@ -363,4 +363,6 @@
       }
     ]
   }
-]}
+]};
+
+export default data;

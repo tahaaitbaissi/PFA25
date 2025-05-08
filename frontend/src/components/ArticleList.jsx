@@ -23,13 +23,13 @@ const ArticleList = ({ articles, onAddArticle }) => {
     e.preventDefault();
     const completeArticle = {
       ...newArticle,
-      author: "Utilisateur", // Valeur par défaut
-      description: "Description générée automatiquement", // Valeur par défaut
-      image: "https://via.placeholder.com/600x400", // Image par défaut
+      author: "Utilisateur",
+      description: "Description générée automatiquement",
+      image: "https://via.placeholder.com/600x400",
       publishedAt: new Date().toISOString(),
-      Ai_Score: 0.85, // Valeur par défaut
-      KeyWords: [],
-      Resumer: "",
+      ai_score: 0.85,
+      keywords: [],
+      summary: "",
       comments: []
     };
     
@@ -110,12 +110,22 @@ const ArticleList = ({ articles, onAddArticle }) => {
         {articles.map((article, index) => (
           <div key={index} className="article-card">
             <Link to={`/article/${index}`} className="article-link">
-              <img src={article.image} alt={article.title} className="article-image" />
+              <img 
+                src={article.image} 
+                alt={article.title} 
+                className="article-image" 
+              />
               <div className="article-content">
                 <h4>{article.title}</h4>
-                <p>{article.content}</p>
+                <p className="content-preview">
+                  {article.content.length > 150 
+                    ? `${article.content.substring(0, 150)}...` 
+                    : article.content}
+                </p>
                 <div className="article-footer">
-                <span className="ai-score">Score IA: {(article.ai_score * 100).toFixed(2)}%</span>
+                  <span className="ai-score">
+                    Score IA: {(article.ai_score * 100).toFixed(2)}%
+                  </span>
                   <button 
                     className="bookmark-button" 
                     onClick={(e) => handleBookmark(index, e)}

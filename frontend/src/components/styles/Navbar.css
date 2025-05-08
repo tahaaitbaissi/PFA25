@@ -1,65 +1,111 @@
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    background-color: #2c3e50;
-    color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    height: 60px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-  }
-  
-  .main-content {
-    margin-top: 60px;
-    height: calc(100vh - 60px);
-    overflow-y: auto;
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #2c3e50;
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: 60px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
 
-  .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ecf0f1;
-  }
-  
-  .search-bar {
-    display: flex;
-    align-items: center;
-    background-color: #34495e;
-    border-radius: 20px;
-    padding: 0.3rem 1rem;
-  }
-  
-  .search-bar input {
-    border: none;
-    background: transparent;
-    color: white;
-    outline: none;
-    width: 200px;
-  }
-  
-  .search-button {
-    background: none;
-    border: none;
-    color: #bdc3c7;
-    cursor: pointer;
-  }
-  
-  .user-profile {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: white;
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-  }
-  
-  .user-icon {
-    font-size: 1.5rem;
-  }
-  
+.main-content {
+  margin-top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ecf0f1;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #34495e;
+  border-radius: 20px;
+  padding: 0.3rem 1rem;
+}
+
+.search-bar input {
+  border: none;
+  background: transparent;
+  color: white;
+  outline: none;
+  width: 200px;
+}
+
+.search-button {
+  background: none;
+  border: none;
+  color: #bdc3c7;
+  cursor: pointer;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.user-icon {
+  font-size: 1.5rem;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 20px;
+  top: 60px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 5px;
+}
+
+.menu-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #333; /* Text color for items */
+  text-decoration: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.menu-item:hover {
+  background-color: black; /* Black background on hover */
+}
+
+.menu-item:hover p,
+.menu-item:hover .menu-icon {
+  color: white; /* Text and icon change to white on hover */
+}
+
+.menu-item p {
+  font-size: 1rem;
+  color: black; /* Default text color for p */
+  visibility: visible;
+}
+
+.menu-icon {
+  font-size: 1rem;
+  color: black; /* Default icon color */
+}
+
+.navbar-right {
+  position: relative;
+  cursor: pointer;
+}

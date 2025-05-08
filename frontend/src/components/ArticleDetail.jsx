@@ -101,7 +101,7 @@ const ArticleDetail = ({ articles }) => {
           )}
 
           <form onSubmit={handleAddComment} className="comment-form">
-            <div className="form-group">
+{/*             <div className="form-group">
               <input
                 type="text"
                 value={commentAuthor}
@@ -110,7 +110,7 @@ const ArticleDetail = ({ articles }) => {
                 required
                 className="author-input"
               />
-            </div>
+            </div> */}
             <div className="form-group">
               <textarea
                 value={newComment}
