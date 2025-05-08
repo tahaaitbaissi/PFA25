@@ -366,38 +366,80 @@ class ArticleService:
             return True, None
         return None, "Failed to update article in database"
 
+    # @staticmethod
+    # def delete_article(article_id: str, user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[bool], Optional[str]]:
+    #     """Delete an article from MongoDB and OpenSearch."""
+    #     if not ObjectId.is_valid(article_id):
+    #         return None, "Invalid article ID format"
+    #
+    #     existing_article = Article.get_by_id(article_id)
+    #     if not existing_article:
+    #         return None, "Article not found"
+    #
+    #     if existing_article.get("user_id") and (not user or str(existing_article["user_id"]) != str(user.get("_id"))):
+    #          return None, "Permission denied: You can only delete your own articles"
+    #
+    #     # Delete from MongoDB
+    #     success_db = Article.delete(article_id)
+    #
+    #     if success_db:
+    #         current_app.logger.info(f"Article ID {article_id} deleted from MongoDB.")
+    #         # If deleted from DB, try to delete from OpenSearch
+    #         try:
+    #              os_service = ArticleService.get_opensearch()
+    #              success_os = os_service.delete_article(article_id)
+    #              if success_os:
+    #                   current_app.logger.info(f"Article ID {article_id} deleted from OpenSearch.")
+    #              else:
+    #                   current_app.logger.warning(f"Failed to delete article ID {article_id} from OpenSearch.")
+    #              return True, None
+    #         except Exception as e:
+    #              current_app.logger.error(f"Error deleting article {article_id} from OpenSearch: {str(e)}", exc_info=True)
+    #              return True, None
+    #
+    #     return None, "Failed to delete article from database"
+
     @staticmethod
     def delete_article(article_id: str, user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[bool], Optional[str]]:
-        """Delete an article from MongoDB and OpenSearch."""
+        """
+        Delete an article from MongoDB and OpenSearch.
+
+        Args:
+            article_id: ID of the article to delete
+            user: User object or None for admin override
+
+        Returns:
+            Tuple (success, error_message)
+        """
+        # Validation de l'ID
         if not ObjectId.is_valid(article_id):
             return None, "Invalid article ID format"
 
+        # Récupération de l'article
         existing_article = Article.get_by_id(article_id)
         if not existing_article:
             return None, "Article not found"
 
-        if existing_article.get("user_id") and (not user or str(existing_article["user_id"]) != str(user.get("_id"))):
-             return None, "Permission denied: You can only delete your own articles"
+        # Vérification des permissions (sauf si user=None pour admin)
+        if user is not None:  # Seulement pour les utilisateurs normaux
+            if existing_article.get("user_id") and str(existing_article["user_id"]) != str(user.get("_id")):
+                return None, "Permission denied: You can only delete your own articles"
 
-        # Delete from MongoDB
+        # Suppression dans MongoDB
         success_db = Article.delete(article_id)
+        if not success_db:
+            return None, "Failed to delete article from database"
 
-        if success_db:
-            current_app.logger.info(f"Article ID {article_id} deleted from MongoDB.")
-            # If deleted from DB, try to delete from OpenSearch
-            try:
-                 os_service = ArticleService.get_opensearch()
-                 success_os = os_service.delete_article(article_id)
-                 if success_os:
-                      current_app.logger.info(f"Article ID {article_id} deleted from OpenSearch.")
-                 else:
-                      current_app.logger.warning(f"Failed to delete article ID {article_id} from OpenSearch.")
-                 return True, None
-            except Exception as e:
-                 current_app.logger.error(f"Error deleting article {article_id} from OpenSearch: {str(e)}", exc_info=True)
-                 return True, None
+        # Suppression dans OpenSearch (optionnelle)
+        try:
+            os_service = ArticleService.get_opensearch()
+            os_service.delete_article(article_id)
+            current_app.logger.info(f"Article {article_id} deleted from OpenSearch")
+        except Exception as e:
+            current_app.logger.error(f"Error deleting from OpenSearch: {str(e)}")
+            # On continue même si OpenSearch échoue
 
-        return None, "Failed to delete article from database"
+        return True, None
 
     @staticmethod
     def _validate_title(title: str) -> bool:

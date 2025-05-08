@@ -4,7 +4,17 @@ from .config import DevelopmentConfig
 from . import db
 from threading import Thread
 import time
-import socket
+from flask_socketio import SocketIO
+from flask_cors import CORS
+
+
+
+
+# Initialize SocketIO globally
+socketio = SocketIO(
+                   logger=True,
+                   engineio_logger=True,
+                   cors_allowed_origins="*")
 
 def start_cron_job(app):
     while True:
@@ -16,10 +26,12 @@ def start_cron_job(app):
         print("Done!")
         time.sleep(1800)  # 30mins
 
+
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
     # Initialize database
     db.init_app(app)
 
@@ -38,9 +50,40 @@ def create_app(config_class=DevelopmentConfig):
 
     from .routes import news
     app.register_blueprint(news.bp)
-    
+
+    from .routes import admin_auth
+    app.register_blueprint(admin_auth.bp)
+
+    from .routes import user_auth
+    app.register_blueprint(user_auth.bp)
+
+    from .routes import common_auth
+    app.register_blueprint(common_auth.bp)
+
+    from .routes import bookmark
+    app.register_blueprint(bookmark.bp)
+
+    from .routes import comments
+    app.register_blueprint(comments.bp)
+
+    from .routes import notifications
+    app.register_blueprint(notifications.bp)
+
+    from .routes import categories
+    app.register_blueprint(categories.bp)
+
+
+    # Initialize SocketIO with app
+    socketio.init_app(app)
+
+    from .sockets.notifications import register_notification_handlers
+    register_notification_handlers(socketio)
+
     # Start background job if not in reloader
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         Thread(target=start_cron_job, args=(app,), daemon=True).start()
-    
+
     return app
+
+
+__all__ = ['socketio']
