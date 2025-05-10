@@ -2,7 +2,7 @@ from transformers import pipeline
 
 MODEL = "jy46604790/Fake-News-Bert-Detect"
 
-fake_news_model = pipeline("text-classification", model=MODEL, tokenizer=MODEL)
+fake_news_model = pipeline("text-classification", model=MODEL, tokenizer=MODEL, truncation=True, max_length=512)
 
 def detect_fake_news(text: str) -> dict:
     result = fake_news_model(text)
