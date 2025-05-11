@@ -6,11 +6,12 @@ from ..db import get_db
 
 class Article:
 
-    def __init__(self, title, content, source_url, date_soumission=None, user_id=None, summary="", keywords=None, ai_score=None, is_fake_label=None, related_reddit_posts=None):
+    def __init__(self, title, content, source_url, date_soumission=None, user_id=None, summary="", keywords=None, ai_score=None, is_fake_label=None, related_reddit_posts=None, image=None):
         self.title = title
         self.content = content
         self.source_url = source_url
         self.date_soumission = date_soumission or datetime.utcnow()
+        self.image = image
         self.user_id = user_id 
         self.summary = summary
         self.ai_score = ai_score
@@ -32,6 +33,7 @@ class Article:
             "date_soumission": self.date_soumission,
             "summary": self.summary,
             "keywords": self.keywords,
+            "image": self.image,
             "user_id": self.user_id,
             "related_reddit_posts": self.related_reddit_posts
         }

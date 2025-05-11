@@ -130,6 +130,10 @@ class ArticleService:
                 current_app.logger.warning(f"Could not fetch full content for {source_url}")
                 continue
 
+            image = NewsAPIService.fetch_article_images(source_url)["top_image"]
+            if not image:
+                current_app.logger.warning(f"Could not fetch image url for {source_url}")
+                
             # Analyze the article content
             analysis = ArticleService._analyze_content(content)
     
@@ -157,6 +161,7 @@ class ArticleService:
                 source_url=source_url,
                 ai_score=analysis["score"],
                 is_fake_label=analysis["is_fake_label"],
+                image=image,
                 summary=analysis["summary"],
                 keywords=analysis["keywords"],
                 related_reddit_posts=related_reddit_posts
@@ -262,6 +267,10 @@ class ArticleService:
         else:
              current_app.logger.warning(f"No meaningful keywords for Reddit search for new article: {data.get('title')}")
 
+        image = NewsAPIService.fetch_article_images(data["source_url"])["top_image"]
+        if not image:
+            current_app.logger.warning(f"Could not fetch image url for {data["source_url"]}")
+
 
         user_id = str(user["_id"]) if user and "_id" in user else None
 
@@ -273,6 +282,7 @@ class ArticleService:
                 is_fake_label=analysis["is_fake_label"],
                 user_id=user_id,
                 summary=analysis["summary"],
+                image=image,
                 keywords=analysis["keywords"],
                 related_reddit_posts=related_reddit_posts
             )

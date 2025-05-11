@@ -44,7 +44,6 @@ class NewsAPIService:
             "sources": "bbc-news",
             "apiKey": api_key
         }
-#elastic search
         try:
             response = requests.get(url, params=params)
             data = response.json()
@@ -64,4 +63,22 @@ class NewsAPIService:
             return article.text
         except Exception as e:
             current_app.logger.error(f"Error scraping article: {str(e)}")
+            return None
+
+    @staticmethod
+    def fetch_article_images(url: str):
+        try:
+            article = Article(url)
+            article.download()
+            article.parse()
+
+            top_image_url = article.top_image
+            all_image_urls = article.images # This is a set of URLs
+
+            return {
+                "top_image": top_image_url,
+                "all_images": list(all_image_urls) # Convert set to list for easier handling
+            }
+        except Exception as e:
+            print(f"Error scraping article for images: {str(e)}")
             return None
