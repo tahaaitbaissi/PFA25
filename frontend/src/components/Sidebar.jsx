@@ -5,7 +5,8 @@ import {
   FaChartLine,
   FaBookmark,
   FaBars, 
-  FaTimes 
+  FaTimes,
+  FaKey
 } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom'; // Ajoutez cette ligne
 import './styles/Sidebar.css';
@@ -29,9 +30,9 @@ const Sidebar = () => {
             <FaHome className="icon" />
             <span>Accueil</span>
           </NavLink>
-          <NavLink to="/profil" className="menu-item">
+          <NavLink to="/UserArticle" className="menu-item">
             <FaUser className="icon" />
-            <span>Profil</span>
+            <span>Your Article</span>
           </NavLink>
           <NavLink to="/bookmarks" className="menu-item">
             <FaBookmark className="icon" />
@@ -40,6 +41,10 @@ const Sidebar = () => {
           <NavLink to="/tendance" className="menu-item">
             <FaChartLine className="icon" />
             <span>tendance</span>
+          </NavLink>
+          <NavLink to="/AdminDashboard" className="menu-item">
+            <FaKey className="icon" />
+            <span>AdminDashboard</span>
           </NavLink>
         </div>
       </div>

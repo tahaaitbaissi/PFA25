@@ -7,7 +7,7 @@ const data = {
       "title": "Republican senator backs Powell over Trump attacks on Fed - Financial Times",
       "content": "White House Watch newsletter Sign up for your free, indispensable guide to what Trump’s second term means for Washington, business and the world.\n\nTrump tracker: US tariffs As the president threatens a trade war, follow the latest on tariffs and executive orders\n\nUS politics & policy Stay on top of the latest events in US politics with the FT’s trusted and impartial coverage.",
       "source_url": "https://www.ft.com/content/8fc4279c-7098-48d9-b21d-be24a42c1ae4",
-      "ai_score": "LABEL_1",
+      "ai_score": "0.78",
       "image": "https://www.ft.com/__origami/service/image/v2/images/raw/https://barrier-page-components.s3.eu-west-1.amazonaws.com/assets/images/us_election_2024/hero_banner_us_election_white_house_watch.png?source=next-barrier-page",
       "date_soumission": {
         "$date": "2025-04-21T19:21:40.972Z"
@@ -111,7 +111,7 @@ const data = {
       "title": "Florida State classes resume Monday after fatal shooting, but in-person attendance isn't mandatory - AP News",
       "content": "TALLAHASSEE, Fla. (AP) — Classes will resume at Florida State University on Monday, four days after a deadly shooting on campus left two people dead and six others injured, school officials said.\n\nStudents and instructors will have the option of holding classes remotely or in person, depending on the class. The school has waived all mandatory attendance policies that could affect grades, so students won’t be punished if they choose not to go to class in person, FSU President Richard McCullough said in a letter to students and faculty.\n\nStudents also can request an incomplete grade for their class if they feel they are unable to complete a course, McCullough said.\n\n“We want everyone to receive the support and help they need. For some students that may mean not going back into the classroom,” McCullough said. “For others, the idea of community and gathering, as well as the opportunity to focus on academics, may be beneficial. There is no single right answer for everyone.”\n\nThe gunman, identified as the stepson of a sheriff’s deputy, arrived on campus an hour before the shooting Thursday and stayed near a parking garage before he walked in and out of buildings and green spaces while firing a handgun just before lunchtime, police said.\n\nIn roughly four minutes, officers confronted 20-year-old Phoenix Ikner, a Florida State student, and shot and wounded him, Tallahassee police said.\n\nThe two victims who died were Robert Morales, a university dining coordinator, and Tiru Chabba, an executive for food service vendor Aramark, according to family members and attorneys for the families.",
       "source_url": "https://apnews.com/article/florida-state-shooting-education-058159e75978e0df57951f77dc539a50",
-      "ai_score": "LABEL_1",
+      "ai_score": "0.59",
       "image": "https://dims.apnews.com/dims4/default/606d9ee/2147483647/strip/true/crop/3464x2309+0+0/resize/1440x960!/format/webp/quality/90/?url=https%3A%2F%2Fassets.apnews.com%2F56%2Fbf%2F07a050869046f57722274f8f3f95%2F280efa29118e47399de9cc9cc92b0993",
       "date_soumission": {
         "$date": "2025-04-21T19:23:58.085Z"
@@ -175,7 +175,7 @@ const data = {
       "title": "Kohl’s Fires CEO After Probe Uncovered Personal Ties to Vendor - Bloomberg.com",
       "content": "Kohl’s Corp. said it fired its chief executive officer only months into his tenure after the board uncovered that he directed millions of dollars of business to someone he has had a personal relationship with that wasn’t disclosed.\n\nThe company said it’s starting a search to find a permanent CEO replacement following the departure of Ashley Buchanan , who came to Kohl’s in January from retailer Michaels Cos. Chairman Michael Bender will serve as Kohl’s interim CEO, according to a statement Bloomberg Terminal .",
       "source_url": "https://www.bloomberg.com/news/articles/2025-05-01/kohl-s-terminates-ceo-for-violating-policy-names-replacement",
-      "ai_score": "LABEL_1",
+      "ai_score": "0.99",
       "image": "https://images.contentstack.io/v3/assets/blt4708b128087ac489/blt2f4622e8769311ec/67fec29fad08a95a577486af/041525_House_Ad_SBS_Singapore_Image-02.jpg?width=1920&disable=upscale&auto=webp&format=pjpg&quality=85",
       "date_soumission": {
         "$date": "2025-05-02T15:04:00.118Z"

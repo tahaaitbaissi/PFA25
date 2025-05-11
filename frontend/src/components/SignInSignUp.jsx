@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   Box, Container, TextField, Typography,
   Button, Paper, InputAdornment
 } from '@mui/material';
 import { AccountCircle, Lock, Email, PersonAdd, Login } from '@mui/icons-material';
 
-const SignInSignUp = () => {
+const SignInSignUp = ({ onAuthentication }) => {
+  const navigate = useNavigate();
   const [isSignup, setIsSignup] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -27,8 +29,8 @@ const SignInSignUp = () => {
     } else {
       const storedUser = JSON.parse(localStorage.getItem('user'));
       if (storedUser && storedUser.email === formData.email && storedUser.password === formData.password) {
-        localStorage.setItem('isLoggedIn', 'true');
-        window.location.href = '/';
+        onAuthentication();
+        navigate('/');
       } else {
         alert('Email ou mot de passe incorrect');
       }

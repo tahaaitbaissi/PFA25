@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import "./styles/ArticleList.css";
 import { FaBookmark, FaPlus, FaTimes } from 'react-icons/fa';
 
-const Bookmarks = ({ articles, onAddArticle }) => {
+const UserArticle = ({ articles, onAddArticle }) => {
   const [showAddPostForm, setShowAddPostForm] = useState(false);
   const [newArticle, setNewArticle] = useState({
     title: "",
@@ -143,4 +143,4 @@ const Bookmarks = ({ articles, onAddArticle }) => {
   );
 };
 
-export default Bookmarks;
+export default UserArticle;

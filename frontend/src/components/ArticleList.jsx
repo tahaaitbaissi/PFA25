@@ -9,7 +9,7 @@ const ArticleList = ({ articles, onAddArticle }) => {
     title: "",
     content: "",
     url: ""
-  });
+  }); 
 
   const handleBookmark = (articleId, e) => {
     e.preventDefault();

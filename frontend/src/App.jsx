@@ -8,6 +8,8 @@ import Profil from './components/Profil';
 import Bookmarks from './components/Bookmarks';
 import Tendance from './components/Tendance';
 import SignInSignUp from './components/SignInSignUp';
+import UserArticle from './components/UserArticle';
+import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 import data from './data';
 
@@ -40,7 +42,7 @@ function App() {
   return (
     <Router>
       <Routes>
-{/*         <Route path="/auth" element={
+        <Route path="/auth" element={
           <SignInSignUp onAuthentication={() => setIsAuthenticated(true)} />
         }/>
 
@@ -48,14 +50,15 @@ function App() {
           <Route index element={<ArticleList articles={data.articles} />} />
           <Route path="article/:id" element={<ArticleDetail articles={data.articles} />} />
           <Route path="profil" element={<Profil />} />
-          <Route path="bookmarks" element={<Bookmarks />} />
-          <Route path="tendance" element={<Tendance />} />
-        </Route>
+          <Route path="bookmarks" element={<Bookmarks articles={data.articles}/>} />
+          <Route path="tendance" element={<Tendance articles={data.articles}/>} />
+          <Route path="AdminDashboard" element={<AdminDashboard/>} />
+          <Route path="userarticle" element={<UserArticle articles={data.articles}/>} />
+        </Route>s
 
         <Route path="*" element={
           <Navigate to={isAuthenticated ? "/" : "/auth"} replace />
-        }/> */}
-        <Route path="profil" element={<Profil />} />
+        }/>
       </Routes>
     </Router>
   );
