@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { FaSearch, FaUserCircle, FaSignOutAlt } from 'react-icons/fa';
+import { FaSearch, FaUserCircle, FaSignOutAlt, FaBell } from 'react-icons/fa'; // Added FaBell
 import { Link, useNavigate } from 'react-router-dom';
 import './styles/Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ notifications = [] }) => { // Added notifications prop
   const [showMenu, setShowMenu] = useState(false);
   const navigate = useNavigate();
 
+  // Calculate unread notifications
+  const unreadNotifications = notifications.filter(n => !n.isRead).length;
+
   const handleLogout = () => {
-    // Ajoutez ici la logique de déconnexion
     localStorage.removeItem('isAuthenticated');
     navigate('/auth');
   };
@@ -28,8 +30,17 @@ const Navbar = () => {
         </div>
       </div>
       
-      <div className="navbar-right" onClick={() => setShowMenu(!showMenu)}>
-        <div className="user-profile">
+      <div className="navbar-right">
+        {/* Notification Icon */}
+        <Link to="/Notification" className="notification-icon">
+          <FaBell className="nav-icon" />
+          {unreadNotifications > 0 && (
+            <span className="notification-badge">{unreadNotifications}</span>
+          )}
+        </Link>
+
+        {/* User Profile */}
+        <div className="user-profile" onClick={() => setShowMenu(!showMenu)}>
           <FaUserCircle className="user-icon" />
           <span>Utilisateur</span>
         </div>

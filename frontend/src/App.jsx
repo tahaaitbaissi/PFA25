@@ -10,6 +10,7 @@ import Tendance from './components/Tendance';
 import SignInSignUp from './components/SignInSignUp';
 import UserArticle from './components/UserArticle';
 import AdminDashboard from './components/AdminDashboard';
+import Notification from './components/Notification';
 import './App.css';
 import data from './data';
 
@@ -17,6 +18,21 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return localStorage.getItem('isAuthenticated') === 'true';
   });
+
+    const sampleNotifications = [
+    {
+      id: 1,
+      message: 'Nouveau message de la part de l\'équipe',
+      date: '2024-03-20T10:00:00',
+      isRead: false
+    },
+    {
+      id: 2,
+      message: 'Votre commande a été expédiée',
+      date: '2024-03-20T09:30:00',
+      isRead: true
+    }
+  ];
 
   useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated);
@@ -28,7 +44,7 @@ function App() {
     }
     return (
       <div className="app">
-        <Navbar />
+        <Navbar notifications={sampleNotifications} />
         <div className="app-container">
           <Sidebar />
           <main className="main-content">
@@ -54,7 +70,8 @@ function App() {
           <Route path="tendance" element={<Tendance articles={data.articles}/>} />
           <Route path="AdminDashboard" element={<AdminDashboard/>} />
           <Route path="userarticle" element={<UserArticle articles={data.articles}/>} />
-        </Route>s
+          <Route path="Notification" element={<Notification notifications={sampleNotifications}/>} />
+        </Route>
 
         <Route path="*" element={
           <Navigate to={isAuthenticated ? "/" : "/auth"} replace />
