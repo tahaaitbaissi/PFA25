@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   Box, Container, TextField, Typography,
   Button, Paper, InputAdornment
@@ -19,21 +20,31 @@ const SignInSignUp = ({ onAuthentication }) => {
   const toggleMode = () => setIsSignup(prev => !prev);
   const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isSignup) {
-      const newUser = { ...formData, id: Date.now(), points: 0 };
-      localStorage.setItem('user', JSON.stringify(newUser));
-      alert('Inscription réussie ! Connectez-vous.');
-      setIsSignup(false);
-    } else {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser && storedUser.email === formData.email && storedUser.password === formData.password) {
+    try {
+      if (isSignup) {
+        // Enregistrement utilisateur
+        await axios.post('/api/register', formData);
+        alert('Inscription réussie ! Connectez-vous.');
+        setIsSignup(false);
+      } else {
+        // Connexion utilisateur
+        const { data } = await axios.post('/api/login', {
+          email: formData.email,
+          password: formData.password
+        });
+        
+        // Stockage du token et des données utilisateur
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Mise à jour de l'état d'authentification
         onAuthentication();
         navigate('/');
-      } else {
-        alert('Email ou mot de passe incorrect');
       }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Une erreur est survenue');
     }
   };
 
@@ -60,7 +71,7 @@ const SignInSignUp = ({ onAuthentication }) => {
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
             border: '1px solid rgba(255, 255, 255, 0.2)',
           }}>
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 4 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 4 }}>
               <motion.div whileHover={{ scale: 1.05 }}>
                 <Button
                   onClick={() => setIsSignup(false)}
