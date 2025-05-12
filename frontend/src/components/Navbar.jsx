@@ -1,18 +1,40 @@
-import React, { useState } from 'react';
-import { FaSearch, FaUserCircle, FaSignOutAlt, FaBell } from 'react-icons/fa'; // Added FaBell
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaUserCircle, FaSignOutAlt, FaBell, FaTimes } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import './styles/Navbar.css';
 
-const Navbar = ({ notifications = [] }) => { // Added notifications prop
+const Navbar = ({ notifications = [] }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [currentNotification, setCurrentNotification] = useState(null);
   const navigate = useNavigate();
 
-  // Calculate unread notifications
   const unreadNotifications = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const latestNotification = notifications[notifications.length - 1];
+      if (!latestNotification.isRead) {
+        setCurrentNotification(latestNotification);
+        setShowPopup(true);
+        
+        const timer = setTimeout(() => {
+          setShowPopup(false);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [notifications]);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     navigate('/auth');
+  };
+
+  const handlePopupClick = () => {
+    setShowPopup(false);
+    navigate('/Notification');
   };
 
   return (
@@ -31,7 +53,6 @@ const Navbar = ({ notifications = [] }) => { // Added notifications prop
       </div>
       
       <div className="navbar-right">
-        {/* Notification Icon */}
         <Link to="/Notification" className="notification-icon">
           <FaBell className="nav-icon" />
           {unreadNotifications > 0 && (
@@ -39,7 +60,6 @@ const Navbar = ({ notifications = [] }) => { // Added notifications prop
           )}
         </Link>
 
-        {/* User Profile */}
         <div className="user-profile" onClick={() => setShowMenu(!showMenu)}>
           <FaUserCircle className="user-icon" />
           <span>Utilisateur</span>
@@ -54,6 +74,29 @@ const Navbar = ({ notifications = [] }) => { // Added notifications prop
             <div className="menu-item" onClick={handleLogout}>
               <FaSignOutAlt className="menu-icon" />
               <p>Déconnexion</p>
+            </div>
+          </div>
+        )}
+
+        {showPopup && currentNotification && (
+          <div className="notification-popup" onClick={handlePopupClick}>
+            <div className="popup-timer"></div>
+            <div className="popup-content">
+              <FaBell className="popup-icon" />
+              <div>
+                <p className="popup-message">{currentNotification.message}</p>
+                <small className="popup-time">
+                  {new Date(currentNotification.date).toLocaleTimeString()}
+                </small>
+              </div>
+              <button 
+                className="popup-close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPopup(false);
+                }}>
+                <FaTimes />
+              </button>
             </div>
           </div>
         )}

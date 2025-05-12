@@ -35,6 +35,20 @@ function App() {
   ];
 
   useEffect(() => {
+  // Simulation de nouvelle notification
+  const interval = setInterval(() => {
+    setSampleNotifications(prev => [...prev, {
+      id: Date.now(),
+      message: 'Nouvelle notification en temps réel',
+      date: new Date().toISOString(),
+      isRead: false
+    }]);
+  }, 10000); // Toutes les 10 secondes
+
+  return () => clearInterval(interval);
+}, []);
+
+  useEffect(() => {
     localStorage.setItem('isAuthenticated', isAuthenticated);
   }, [isAuthenticated]);
 
