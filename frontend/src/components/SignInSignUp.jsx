@@ -25,19 +25,20 @@ const SignInSignUp = ({ onAuthentication }) => {
     try {
       if (isSignup) {
         // Enregistrement utilisateur
-        await axios.post('/api/register', formData);
+        await axios.post('http://localhost:5000/user_auth/register', formData);
         alert('Inscription réussie ! Connectez-vous.');
         setIsSignup(false);
       } else {
         // Connexion utilisateur
-        const { data } = await axios.post('/api/login', {
+        const { data } = await axios.post('http://localhost:5000/user_auth/login', {
           email: formData.email,
           password: formData.password
         });
         
         // Stockage du token et des données utilisateur
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        console.log(data.access_token);
         
         // Mise à jour de l'état d'authentification
         onAuthentication();

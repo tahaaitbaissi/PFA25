@@ -1,115 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import "./styles/ArticleList.css";
-import { FaBookmark, FaPlus, FaTimes } from 'react-icons/fa';
+import { FaBookmark } from 'react-icons/fa';
 
-const Tendance = ({ articles, onAddArticle }) => {
-  const [showAddPostForm, setShowAddPostForm] = useState(false);
-  const [newArticle, setNewArticle] = useState({
-    title: "",
-    content: "",
-    url: ""
-  }); 
+const Tendance = () => {
+  const [articles, setArticles] = useState([]);
+  const [articlesLoading, setArticlesLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const handleBookmark = (articleId, e) => {
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/articles/recommended/');
+        setArticles(response.data);
+      } catch (err) {
+        console.error('Erreur de chargement des articles:', err.message);
+        setError('Erreur lors du chargement des articles');
+      } finally {
+        setArticlesLoading(false);
+      }
+    };
+    fetchArticles();
+  }, []);
+
+  const handleBookmark = async (articleId, e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log(`Article ${articleId} bookmarké`);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`http://localhost:5000/bookmark/add/`, { article_id: articleId }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log(`Article ${articleId} bookmarké avec succès`);
+    } catch (err) {
+      console.error('Erreur de bookmark:', err.response?.data?.message);
+    }
   };
 
-  const handleAddPost = () => setShowAddPostForm(true);
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    const completeArticle = {
-      ...newArticle,
-      author: "Utilisateur",
-      description: "Description générée automatiquement",
-      image: "https://via.placeholder.com/600x400",
-      publishedAt: new Date().toISOString(),
-      ai_score: 0.85,
-      keywords: [],
-      summary: "",
-      comments: []
-    };
-    
-    onAddArticle(completeArticle);
-    setShowAddPostForm(false);
-    setNewArticle({ title: "", content: "", url: "" });
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewArticle(prev => ({ ...prev, [name]: value }));
-  };
+  if (articlesLoading) {
+    return <div className="loading">Chargement des articles...</div>;
+  }
 
   return (
     <div className="article-list">
       <div className="article-list-header">
         <h1>Liste des Articles</h1>
-        <button className="add-post-button" onClick={handleAddPost}>
-          <FaPlus /> Ajouter votre post
-        </button>
       </div>
 
-      {showAddPostForm && (
-        <div className="add-post-form-overlay">
-          <div className="add-post-form">
-            <button 
-              className="close-form-button" 
-              onClick={() => setShowAddPostForm(false)}
-            >
-              <FaTimes />
-            </button>
-            <h2>Nouvel Article</h2>
-            <form onSubmit={handleFormSubmit}>
-              <div className="form-group">
-                <label>Titre:</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={newArticle.title}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>URL Source:</label>
-                <input
-                  type="url"
-                  name="url"
-                  value={newArticle.url}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="https://example.com"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Contenu:</label>
-                <textarea
-                  name="content"
-                  value={newArticle.content}
-                  onChange={handleInputChange}
-                  required
-                  rows="8"
-                  placeholder="Écrivez votre article ici..."
-                />
-              </div>
-
-              <button type="submit" className="submit-post-button">
-                Publier l'article
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       <div className="articles-container">
-        {articles.map((article, index) => (
-          <div key={index} className="article-card">
-            <Link to={`/article/${index}`} className="article-link">
+        {articles.map(article => (
+          <div key={article._id} className="article-card">
+            <Link to={`/article/${article._id}`} className="article-link">
               <img 
                 src={article.image} 
                 alt={article.title} 
@@ -128,7 +70,7 @@ const Tendance = ({ articles, onAddArticle }) => {
                   </span>
                   <button 
                     className="bookmark-button" 
-                    onClick={(e) => handleBookmark(index, e)}
+                    onClick={(e) => handleBookmark(article.id, e)}
                     aria-label="Enregistrer comme bookmark"
                   >
                     <FaBookmark />
