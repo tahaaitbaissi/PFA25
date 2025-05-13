@@ -194,6 +194,7 @@ const Navbar = ({ notifications = [] }) => {
       </div>
 
       <div className="navbar-center">
+        {/* Use a form element to handle submission on Enter key press */}
         <form className="search-bar" onSubmit={handleSearch}>
           <input
             type="text"
@@ -203,19 +204,21 @@ const Navbar = ({ notifications = [] }) => {
             disabled={isSearching}
             aria-label="Search articles"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit" // Set type to submit for form submission
             className="search-button"
             disabled={isSearching}
             aria-label="Submit search"
           >
+            {/* Show spinner while searching */}
             {isSearching ? (
-              <div className="spinner"></div>
+              <div className="spinner"></div> // Make sure you have CSS for .spinner
             ) : (
               <FaSearch />
             )}
           </button>
         </form>
+        {/* Display search error message */}
         {searchError && (
           <div className="search-error">
             {searchError}

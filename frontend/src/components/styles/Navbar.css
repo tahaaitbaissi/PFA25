@@ -26,28 +26,73 @@
   color: #ecf0f1;
 }
 
+/* Corrected search-bar and input styles */
 .search-bar {
   display: flex;
   align-items: center;
-  background-color: #34495e;
+  background: white; /* Background is white */
   border-radius: 20px;
-  padding: 0.3rem 1rem;
+  padding: 5px 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  position: relative; /* Needed for absolute positioning of error */
 }
 
 .search-bar input {
+  flex: 1;
   border: none;
-  background: transparent;
-  color: white;
+  padding: 8px;
+  font-size: 14px;
   outline: none;
-  width: 200px;
+  background: transparent;
+  color: #333; /* <-- Changed text color to dark gray */
+}
+
+.search-bar input::placeholder {
+    color: #999; /* Placeholder text color */
+    opacity: 1; /* Ensure placeholder is not transparent */
+}
+
+
+.search-bar input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
 }
 
 .search-button {
   background: none;
   border: none;
-  color: #bdc3c7;
+  padding: 8px;
   cursor: pointer;
+  color: #666;
+  transition: color 0.2s;
 }
+
+.search-button:hover {
+  color: #333;
+}
+
+.search-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.search-error {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff3f3;
+  color: #d32f2f;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  text-align: center;
+  z-index: 1; /* Ensure error message is above other content if needed */
+}
+
 
 .user-profile {
   display: flex;
@@ -225,68 +270,11 @@
   color: #e74c3c;
 }
 
-.search-bar {
-  display: flex;
-  align-items: center;
-  background: white;
-  border-radius: 20px;
-  padding: 5px 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 500px;
-}
-
-.search-bar input {
-  flex: 1;
-  border: none;
-  padding: 8px;
-  font-size: 14px;
-  outline: none;
-  background: transparent;
-}
-
-.search-bar input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.search-button {
-  background: none;
-  border: none;
-  padding: 8px;
-  cursor: pointer;
-  color: #666;
-  transition: color 0.2s;
-}
-
-.search-button:hover {
-  color: #333;
-}
-
-.search-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.search-error {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: #fff3f3;
-  color: #d32f2f;
-  padding: 8px;
-  border-radius: 4px;
-  margin-top: 4px;
-  font-size: 12px;
-  text-align: center;
-}
-
 /* Loading spinner */
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #f3f3f3;
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-top: 2px solid #666;
   border-radius: 50%;
   animation: spin 1s linear infinite;

@@ -1,5 +1,6 @@
 /* Styles de base */
-.article-detail {
+/* Corrected: Match .article-detail-container from JSX */
+.article-detail-container {
   max-width: 800px;
   margin: 2rem auto;
   padding: 2rem;
@@ -14,14 +15,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.article-not-found {
+/* Corrected: Match .not-found from JSX */
+.not-found {
   text-align: center;
   padding: 2rem;
   font-size: 1.2rem;
   color: #636e72;
 }
 
-.article-detail h1 {
+/* Corrected: Target h1 inside .main-article */
+.main-article .article-title {
   font-size: 2.5rem;
   margin-bottom: 1.5rem;
   color: #2d3436;
@@ -31,7 +34,7 @@
   padding-bottom: 1rem;
 }
 
-.article-detail h1::after {
+.main-article .article-title::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -42,7 +45,8 @@
   border-radius: 2px;
 }
 
-.detail-image {
+/* Corrected: Match .article-image from JSX */
+.article-image {
   width: 100%;
   max-height: 500px;
   object-fit: cover;
@@ -52,7 +56,7 @@
   transition: transform 0.4s ease;
 }
 
-.detail-image:hover {
+.article-image:hover {
   transform: scale(1.01);
 }
 
@@ -74,12 +78,14 @@
   gap: 0.5rem;
 }
 
-.article-meta span::before {
+/* Removing the ::before content as it's not in JSX */
+/* If you want a bullet, add a span or div in JSX */
+/* .article-meta span::before {
   content: '•';
   color: #0984e3;
   font-weight: bold;
   margin-right: 0.5rem;
-}
+} */
 
 .article-content {
   line-height: 1.8;
@@ -87,7 +93,8 @@
   font-size: 1.1rem;
 }
 
-.article-content p {
+/* Corrected: Target p inside .article-content */
+.article-content .article-text {
   margin-bottom: 1.5rem;
 }
 
@@ -98,32 +105,36 @@
   font-weight: 600;
 }
 
-.article-content ul {
+/* Corrected: Target .keywords-list (which is a div, not ul/li) */
+.keywords-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.8rem;
   margin: 1.5rem 0;
   padding: 0;
-  list-style: none;
+  /* list-style: none; Remove list styles if it were a ul */
 }
 
-.article-content li {
+/* Corrected: Target .keyword-tag (which is a span, not li) */
+.keyword-tag {
   background: #dfe6e9;
   color: #2d3436;
   padding: 0.5rem 1.2rem;
   border-radius: 20px;
   font-size: 0.9rem;
   transition: all 0.3s ease;
+  display: inline-block; /* Span is inline by default, make it block-like for padding */
 }
 
-.article-content li:hover {
+.keyword-tag:hover {
   background: #0984e3;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(9, 132, 227, 0.2);
 }
 
-.original-article-link {
+/* Corrected: Match .source-link from JSX */
+.source-link {
   display: inline-flex;
   align-items: center;
   gap: 0.8rem;
@@ -138,7 +149,7 @@
   box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3);
 }
 
-.original-article-link:hover {
+.source-link:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(9, 132, 227, 0.4);
   background: linear-gradient(135deg, #0984e3, #00b894);
@@ -151,16 +162,18 @@
   border-top: 1px solid #f0f0f0;
 }
 
-.comments-title {
+/* Corrected: Remove comments-title as it's not in JSX */
+/* .comments-title {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
   color: #0984e3;
   font-weight: 600;
   position: relative;
   padding-bottom: 0.5rem;
-}
+} */
 
-.comments-title::after {
+/* Corrected: Remove comments-title::after as it's not in JSX */
+/* .comments-title::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -169,7 +182,8 @@
   height: 3px;
   background: linear-gradient(90deg, #0984e3, #00cec9);
   border-radius: 2px;
-}
+} */
+
 
 .no-comments {
   color: #636e72;
@@ -188,7 +202,8 @@
   margin-bottom: 2rem;
 }
 
-.comment {
+/* Corrected: Match .comment-card from JSX */
+.comment-card {
   background: #f8f9fa;
   border-radius: 8px;
   padding: 1.5rem;
@@ -196,23 +211,26 @@
   transition: all 0.3s ease;
 }
 
-.comment:hover {
+.comment-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.comment-content p {
+/* Corrected: Target .comment-content directly, not p inside it */
+.comment-content {
   margin: 0 0 1rem 0;
   color: #2d3436;
   line-height: 1.6;
 }
 
-.comment-meta {
+/* Corrected: Match .comment-header from JSX */
+.comment-header {
   display: flex;
   align-items: center;
   gap: 1rem;
   font-size: 0.85rem;
   color: #636e72;
+  margin-bottom: 0.8rem; /* Added margin below header */
 }
 
 .comment-author {
@@ -232,12 +250,13 @@
   border-radius: 8px;
 }
 
-.form-group {
+/* Corrected: Remove .form-group as it's not in JSX */
+/* .form-group {
   margin-bottom: 1.5rem;
-}
+} */
 
-.author-input,
-.comment-textarea {
+/* Corrected: Match .comment-input from JSX */
+.comment-input {
   width: 100%;
   padding: 0.8rem 1rem;
   border: 1px solid #dfe6e9;
@@ -245,21 +264,25 @@
   font-family: inherit;
   font-size: 1rem;
   transition: all 0.3s ease;
+  margin-bottom: 1rem; /* Added margin below textarea */
+  display: block; /* Make textarea a block element */
 }
 
-.author-input:focus,
-.comment-textarea:focus {
+/* Corrected: Match .comment-input from JSX */
+.comment-input:focus {
   outline: none;
   border-color: #0984e3;
   box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.2);
 }
 
-.comment-textarea {
+/* Corrected: Remove .comment-textarea as it's not in JSX */
+/* .comment-textarea {
   min-height: 120px;
   resize: vertical;
-}
+} */
 
-.submit-comment {
+/* Corrected: Match .submit-comment-button from JSX */
+.submit-comment-button {
   background: linear-gradient(135deg, #0984e3, #00cec9);
   color: white;
   border: none;
@@ -271,63 +294,91 @@
   box-shadow: 0 4px 15px rgba(9, 132, 227, 0.3);
   font-size: 1rem;
   width: 100%;
+  display: block; /* Make button a block element */
+  text-align: center; /* Center text if display block */
 }
 
-.submit-comment:hover {
+.submit-comment-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(9, 132, 227, 0.4);
   background: linear-gradient(135deg, #0984e3, #00b894);
 }
 
+/* Corrected: Match .login-to-comment from JSX */
+.login-to-comment {
+  text-align: center;
+  padding: 1rem;
+  background: #fff3cd; /* Light yellow background */
+  color: #856404; /* Dark yellow text */
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
-  .article-detail {
+  /* Corrected: Match .article-detail-container from JSX */
+  .article-detail-container {
     padding: 1.5rem;
     margin: 1rem;
   }
-  
-  .article-detail h1 {
+
+  /* Corrected: Target h1 inside .main-article */
+  .main-article .article-title {
     font-size: 2rem;
   }
-  
+
   .article-meta {
     flex-direction: column;
     gap: 0.8rem;
   }
-  
+
   .comments-section {
     margin-top: 2rem;
     padding-top: 1.5rem;
   }
-  
-  .comment {
+
+  /* Corrected: Match .comment-card from JSX */
+  .comment-card {
     padding: 1rem;
   }
-  
+
   .comment-form {
     padding: 1rem;
+  }
+
+  /* Corrected: Match .comment-input from JSX */
+  .comment-input {
+    /* min-height: 100px; Removed as it's not in JSX */
+    resize: vertical;
   }
 }
 
 @media (max-width: 480px) {
-  .article-detail h1 {
+  /* Corrected: Target h1 inside .main-article */
+  .main-article .article-title {
     font-size: 1.7rem;
   }
-  
-  .detail-image {
+
+  /* Corrected: Match .article-image from JSX */
+  .article-image {
     max-height: 300px;
   }
-  
+
   .article-content {
     font-size: 1rem;
   }
-  
-  .comments-title {
+
+  /* Corrected: Remove comments-title as it's not in JSX */
+  /* .comments-title {
     font-size: 1.3rem;
-  }
-  
-  .comment-textarea {
-    min-height: 100px;
+  } */
+
+  /* Corrected: Match .comment-input from JSX */
+  .comment-input {
+     min-height: 100px; /* Added back min-height for smaller screens */
+     resize: vertical;
   }
 }
 
@@ -362,66 +413,126 @@
   left: 0;
   right: 0;
   height: 3px;
-  background-color: #4CAF50;
+  background-color: #4CAF50; /* Green indicator */
 }
 
-/* Reddit Posts */
-.reddit-posts {
+/* Reddit Posts Section */
+/* Corrected: Match .reddit-posts-section from JSX */
+.reddit-posts-section {
   display: grid;
   gap: 1.5rem;
+  margin-top: 2rem; /* Add some space above */
 }
 
-.reddit-post {
+/* Corrected: Match .reddit-post-card from JSX (which is an <a> tag) */
+.reddit-post-card {
   background: #fff;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
+  text-decoration: none; /* Remove underline */
+  color: inherit; /* Inherit text color */
+  display: block; /* Make the link a block element */
 }
 
-.reddit-post:hover {
+.reddit-post-card:hover {
   transform: translateY(-2px);
 }
 
-.reddit-post-link {
-  text-decoration: none;
-  color: inherit;
-}
-
-.reddit-post-link h4 {
+/* Corrected: Target h4 inside .reddit-post-card */
+.reddit-post-card h4 {
   margin: 0 0 0.5rem;
   color: #2c3e50;
   font-size: 1.1rem;
 }
 
-.reddit-meta {
+/* Corrected: Match .reddit-post-meta from JSX */
+.reddit-post-meta {
   display: flex;
   gap: 1rem;
   font-size: 0.9rem;
   color: #666;
 }
 
-.reddit-meta span:first-child {
-  color: #ff4500;
+.reddit-post-meta span:first-child {
+  color: #ff4500; /* Reddit orange */
   font-weight: 500;
 }
 
-.delete-comment-btn {
+/* Corrected: Match .delete-comment-button from JSX */
+.delete-comment-button {
   background: none;
   border: none;
-  color: #ff4444;
+  color: #ff4444; /* Red color */
   cursor: pointer;
   font-size: 0.8rem;
-  margin-left: auto;
+  margin-left: auto; /* Push button to the right */
   padding: 0 5px;
+  display: block; /* Make button a block element */
+  margin-top: 0.5rem; /* Add some space above */
 }
 
-.delete-comment-btn:hover {
+.delete-comment-button:hover {
   text-decoration: underline;
 }
 
-.comment-meta {
+/* Corrected: Ensure .comment-meta matches .comment-header (already done above) */
+/* .comment-meta {
   display: flex;
   align-items: center;
   gap: 10px;
+} */
+
+/* Styles for placeholder image div */
+.result-image-placeholder {
+    width: 100%;
+    height: 180px; /* Match image height */
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 1em;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
+
+/* Loading container styles */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px; /* Ensure it takes up some space */
+    font-size: 1.2rem;
+    color: #555;
+}
+
+/* Error message styles */
+.error-message {
+    text-align: center;
+    padding: 15px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+.error-message button {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.error-message button:hover {
+    background-color: #c82333;
+}
+
