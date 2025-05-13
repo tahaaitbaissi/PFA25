@@ -11,6 +11,7 @@ import SignInSignUp from './components/SignInSignUp';
 import UserArticle from './components/UserArticle';
 import AdminDashboard from './components/AdminDashboard';
 import Notification from './components/Notification';
+import SearchResults from './components/SearchResults';
 import './App.css';
 import data from './data';
 
@@ -85,6 +86,7 @@ function App() {
           <Route path="AdminDashboard" element={<AdminDashboard/>} />
           <Route path="userarticle" element={<UserArticle articles={data.articles}/>} />
           <Route path="Notification" element={<Notification notifications={sampleNotifications}/>} />
+          <Route path="/search" element={<SearchResults />} />
         </Route>
 
         <Route path="*" element={

@@ -30,7 +30,14 @@ def start_cron_job(app):
 def create_app(config_class=DevelopmentConfig):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    CORS(app, resources={r"/*": {"origins": "*"}}, methods={"PUT", "GET", "POST", "DELETE"})
+    # CORS(app, resources={r"/*": {"origins": "*"}}, methods={"PUT", "GET", "POST", "DELETE"})
+    CORS(app, resources={
+        r"/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
 
     # Initialize database
     db.init_app(app)

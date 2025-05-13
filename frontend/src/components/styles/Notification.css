@@ -1,57 +1,119 @@
 .notification-container {
-  max-width: 600px;
-  margin: 20px auto;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background-color: #ffffff;
+  font-family: Arial, sans-serif;
 }
 
-.notification-item {
+.notification-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 6px;
-  transition: background-color 0.3s ease;
+  margin-bottom: 20px;
 }
 
-.unread {
-  background-color: #f8f9fa;
+.notification-item {
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.notification-item.unread {
+  background-color: #e3f2fd;
   border-left: 4px solid #2196f3;
 }
 
-.read {
-  background-color: #ffffff;
-  opacity: 0.7;
+.notification-item.read {
+  opacity: 0.8;
 }
 
 .notification-content {
-  flex-grow: 1;
-  margin-right: 15px;
+  margin-bottom: 10px;
 }
 
 .notification-content p {
-  margin: 0;
-  color: #333;
+  margin: 0 0 5px 0;
+  font-size: 16px;
 }
 
 .notification-content small {
   color: #666;
+  font-size: 12px;
 }
 
-.mark-read-btn {
+.notification-type {
+  font-size: 12px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.mark-read-btn, .mark-all-read-btn, .delete-btn, .load-more-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.mark-read-btn, .mark-all-read-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.mark-read-btn:hover, .mark-all-read-btn:hover {
+  background-color: #388e3c;
+}
+
+.delete-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #d32f2f;
+}
+
+.load-more-btn {
   background-color: #2196f3;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  display: block;
+  margin: 20px auto;
+  padding: 8px 15px;
 }
 
-.mark-read-btn:hover {
+.load-more-btn:hover {
   background-color: #1976d2;
 }
 
+.load-more-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 20px;
+  color: #d32f2f;
+  background-color: #ffebee;
+  border-radius: 4px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}

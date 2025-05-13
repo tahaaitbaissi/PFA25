@@ -227,3 +227,30 @@ def get_keyword_stats():
     except Exception as e:
         current_app.logger.error(f"Error getting keyword statistics from OpenSearch: {str(e)}", exc_info=True)
         return jsonify({"error": "Failed to retrieve keyword statistics"}), 500
+    
+@bp.route("/my-articles", methods=["GET"])
+@token_required # Requires authentication to identify the user
+def get_my_articles(current_user):
+    """Retrieve all articles created by the authenticated user."""
+    try:
+        # Get the user ID from the authenticated user object
+        user_id = str(current_user.get("_id")) # Ensure it's a string compatible with your service layer
+
+        if not user_id:
+             current_app.logger.error("Authenticated user object missing '_id' field.")
+             return jsonify({"error": "Could not identify user"}), 500
+
+        articles, error = ArticleService.get_articles_by_user(user_id)
+
+        if error:
+             current_app.logger.error(f"Error retrieving articles for user {user_id}: {error}")
+             return jsonify({"error": error}), 500 # Or 404 if the error specifically means user found but no articles
+
+        # If no articles are found, an empty list is usually returned, which is fine for 200
+        return jsonify(articles), 200
+
+    except Exception as e:
+        # Log unexpected errors
+        user_id_log = str(current_user.get("_id", "unknown")) # Handle case where _id might be missing in exception
+        current_app.logger.error(f"Unexpected error retrieving articles for user {user_id_log}: {str(e)}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve your articles"}), 500

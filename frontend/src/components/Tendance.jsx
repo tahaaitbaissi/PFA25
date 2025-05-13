@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import "./styles/ArticleList.css";
-import { FaBookmark } from 'react-icons/fa';
+import "./styles/Tendence.css";
+import { FaBookmark, FaPlus } from 'react-icons/fa';
 
 const Tendance = () => {
   const [articles, setArticles] = useState([]);
-  const [articlesLoading, setArticlesLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newArticle, setNewArticle] = useState({
+    title: '',
+    content: '',
+    image: ''
+  });
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/articles/recommended/');
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/articles/recommended', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setArticles(response.data);
       } catch (err) {
-        console.error('Erreur de chargement des articles:', err.message);
-        setError('Erreur lors du chargement des articles');
+        setError(err.response?.data?.message || 'Erreur lors du chargement des articles');
       } finally {
-        setArticlesLoading(false);
+        setLoading(false);
       }
     };
     fetchArticles();
@@ -26,26 +34,43 @@ const Tendance = () => {
 
   const handleBookmark = async (articleId, e) => {
     e.preventDefault();
-    e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/bookmark/add/`, { article_id: articleId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log(`Article ${articleId} bookmarké avec succès`);
+      await axios.post(
+        'http://localhost:5000/bookmark/add',
+        { article_id: articleId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
     } catch (err) {
-      console.error('Erreur de bookmark:', err.response?.data?.message);
+      console.error('Erreur de bookmark:', err);
     }
   };
 
-  if (articlesLoading) {
-    return <div className="loading">Chargement des articles...</div>;
-  }
+  const handleAddPost = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        'http://localhost:5000/articles',
+        newArticle,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setArticles([response.data, ...articles]);
+      setShowAddForm(false);
+      setNewArticle({ title: '', content: '', image: '' });
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout:', err);
+    }
+  };
+
+  if (loading) return <div className="loading">Chargement des articles...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="article-list">
       <div className="article-list-header">
-        <h1>Liste des Articles</h1>
+        <h1>Articles Tendances</h1>
+
       </div>
 
       <div className="articles-container">
@@ -70,8 +95,7 @@ const Tendance = () => {
                   </span>
                   <button 
                     className="bookmark-button" 
-                    onClick={(e) => handleBookmark(article.id, e)}
-                    aria-label="Enregistrer comme bookmark"
+                    onClick={(e) => handleBookmark(article._id, e)}
                   >
                     <FaBookmark />
                   </button>
@@ -81,6 +105,50 @@ const Tendance = () => {
           </div>
         ))}
       </div>
+
+      {showAddForm && (
+        <div className="add-post-form-overlay">
+          <div className="add-post-form">
+            <button 
+              className="close-form-button"
+              onClick={() => setShowAddForm(false)}
+            >
+              &times;
+            </button>
+            <h2>Créer un nouvel article</h2>
+            <form onSubmit={handleAddPost}>
+              <div className="form-group">
+                <label>Titre</label>
+                <input 
+                  type="text" 
+                  value={newArticle.title}
+                  onChange={(e) => setNewArticle({...newArticle, title: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Contenu</label>
+                <textarea 
+                  value={newArticle.content}
+                  onChange={(e) => setNewArticle({...newArticle, content: e.target.value})}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>URL de l'image</label>
+                <input 
+                  type="text" 
+                  value={newArticle.image}
+                  onChange={(e) => setNewArticle({...newArticle, image: e.target.value})}
+                />
+              </div>
+              <button type="submit" className="submit-post-button">
+                Publier l'article
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

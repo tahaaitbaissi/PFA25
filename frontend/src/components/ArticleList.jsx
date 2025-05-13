@@ -4,6 +4,23 @@ import axios from 'axios';
 import "./styles/ArticleList.css";
 import { FaBookmark, FaPlus, FaTimes } from 'react-icons/fa';
 
+const api = axios.create({
+  baseURL: 'http://localhost:5000',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+});
+
+// Add request interceptor for auth token
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 const ArticleList = ({ onAddArticle }) => {
   const [articles, setArticles] = useState([]);
   const [showAddPostForm, setShowAddPostForm] = useState(false);
@@ -21,11 +38,11 @@ const ArticleList = ({ onAddArticle }) => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/articles/');
+        const response = await api.get('/articles/');
         setArticles(response.data);
       } catch (err) {
-        console.error('Erreur de chargement des articles:', err.message);
-        setError('Erreur lors du chargement des articles');
+        console.error('Error loading articles:', err);
+        setError('Error loading articles');
       } finally {
         setArticlesLoading(false);
       }
@@ -37,13 +54,17 @@ const ArticleList = ({ onAddArticle }) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/bookmark/add/`, { article_id: articleId }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      console.log(`Article ${articleId} bookmarké avec succès`);
+      await api.post('/bookmark/add', { article_id: articleId });
+      
+      // Update UI to reflect bookmark status
+      setArticles(articles.map(article => 
+        article._id === articleId 
+          ? { ...article, isBookmarked: true } 
+          : article
+      ));
     } catch (err) {
-      console.error('Erreur de bookmark:', err.response?.data?.message);
+      console.error('Bookmark error:', err);
+      setError(err.response?.data?.message || 'Failed to bookmark article');
     }
   };
 
@@ -192,10 +213,10 @@ const ArticleList = ({ onAddArticle }) => {
                   <span className="ai-score">
                     Score IA: {(article.ai_score * 100).toFixed(2)}%
                   </span>
-                  <button 
-                    className="bookmark-button" 
-                    onClick={(e) => handleBookmark(article.id, e)}
-                    aria-label="Enregistrer comme bookmark"
+                  <button
+                    className={`bookmark-button ${article.isBookmarked ? 'bookmarked' : ''}`}
+                    onClick={(e) => handleBookmark(article._id, e)}
+                    aria-label={article.isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
                   >
                     <FaBookmark />
                   </button>

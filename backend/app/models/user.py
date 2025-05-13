@@ -4,7 +4,7 @@ from feedparser.namespaces import admin
 from ..db import get_db
 
 class User:
-    def __init__(self, username, email, password, points=0, role="user",admin_request="False",user_id=None):
+    def __init__(self, username, email, password, points=0, role="user", admin_request="False", user_id=None, categories=None):
         self.id = user_id
         self.username = username
         self.email = email
@@ -12,6 +12,7 @@ class User:
         self.points = points
         self.role = role
         self.admin_request = admin_request
+        self.categories = categories or []  # Store category IDs
 
 
 
@@ -24,6 +25,7 @@ class User:
             "points": self.points,
             "role": self.role,
             "admin_request": self.admin_request,
+            "categories": self.categories
         }
         result = db.users.insert_one(user_data)
         self.id = str(result.inserted_id)
@@ -85,15 +87,25 @@ class User:
    
     @staticmethod
     def add_category(user_id, category_id):
-        from ..models.user_category import UserCategory
-        return UserCategory.add_category_to_user(user_id, category_id)
+        """Add a category to user's interests"""
+        db = get_db()
+        result = db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$addToSet": {"categories": category_id}}
+        )
+        return result.modified_count > 0
+
+    @staticmethod
+    def remove_category(user_id, category_id):
+        """Remove a category from user's interests"""
+        db = get_db()
+        result = db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$pull": {"categories": category_id}}
+        )
+        return result.modified_count > 0
 
     @staticmethod
     def get_categories(user_id):
         from ..models.user_category import UserCategory
         return UserCategory.get_user_categories(user_id)
-
-    @staticmethod
-    def remove_category(user_id, category_id):
-        from ..models.user_category import UserCategory
-        return UserCategory.remove_category_from_user(user_id, category_id)

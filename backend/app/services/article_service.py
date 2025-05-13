@@ -69,18 +69,41 @@ class ArticleService:
 
     @staticmethod
     def get_recommended_articles(user_id: str) -> List[Dict[str, Any]]:
-        """Retrieve recommended articles based on user's interests using OpenSearch (placeholder)."""
+        """Retrieve recommended articles based on user's categories."""
         try:
-            os_service = ArticleService.get_opensearch()
-            # Assuming search_recommendations takes user_id and returns articles
-            return os_service.search_recommendations(user_id)
-        except Exception as e:
-            current_app.logger.error(f"Error getting recommendations from OpenSearch: {str(e)}")
-            current_app.logger.warning("Falling back to MongoDB for recommendations.")
+            db = get_db()
+            
+            # Get user's categories
+            user = db.users.find_one({"_id": ObjectId(user_id)})
+            if not user or not user.get("categories"):
+                return []
+                
+            user_categories = user["categories"]
+            
+            # Get all articles
             articles = Article.get_all()
-            # Basic fallback - replace with actual recommendation logic
-            recommended = [article for article in articles if user_id in article.get("keywords", [])]
+            
+            # Filter articles based on user's categories
+            recommended = []
+            for article in articles:
+                # Get article's categories from keywords
+                article_categories = []
+                for keyword in article.get("keywords", []):
+                    category = db.categories.find_one({"label": keyword})
+                    if category:
+                        article_categories.append(str(category["_id"]))
+                
+                # Check if any of the article's categories match user's categories
+                if any(cat in user_categories for cat in article_categories):
+                    recommended.append(article)
+            
+            # Sort by date (newest first) and limit to 10 results
+            recommended.sort(key=lambda x: x.get("date_soumission", datetime.min), reverse=True)
             return recommended[:10]
+            
+        except Exception as e:
+            current_app.logger.error(f"Error getting recommended articles: {str(e)}")
+            return []
 
     @staticmethod
     def search_articles(query: str) -> List[Dict[str, Any]]:
@@ -408,6 +431,30 @@ class ArticleService:
     #              return True, None
     #
     #     return None, "Failed to delete article from database"
+
+    @staticmethod
+    def get_articles_by_user(user_id: str) -> Tuple[List[Dict[str, Any]], Optional[str]]:
+        """Retrieve all articles created by a specific user from MongoDB."""
+        try:
+            db = get_db()
+            # Find all articles where the 'user_id' field matches the provided user_id string
+            # Assumes user_id is stored as a string in the article document
+            articles_cursor = db.articles.find({"user_id": user_id}).sort("date_soumission", -1) # Sort newest first
+
+            articles_list = []
+            for article_doc in articles_cursor:
+                 # Convert ObjectId to string for JSON serialization if needed
+                 article_doc['_id'] = str(article_doc['_id'])
+                 # Ensure other ObjectIds (like user_id) are strings too if they exist
+                 if 'user_id' in article_doc and isinstance(article_doc['user_id'], ObjectId):
+                      article_doc['user_id'] = str(article_doc['user_id'])
+                 articles_list.append(article_doc)
+
+            return articles_list, None
+
+        except Exception as e:
+            current_app.logger.error(f"Error retrieving articles for user {user_id}: {str(e)}", exc_info=True)
+            return [], f"Failed to retrieve articles for user {user_id}"
 
     @staticmethod
     def delete_article(article_id: str, user: Optional[Dict[str, Any]] = None) -> Tuple[Optional[bool], Optional[str]]:
