@@ -9,16 +9,6 @@ from flask_socketio import disconnect # Import disconnect
 
 bp = Blueprint('common_auth', __name__, url_prefix='/auth')
 
-
-def generate_refresh_token(user_id):
-    refresh_token = jwt.encode(
-        {"user_id": user_id, "exp": datetime.utcnow() + timedelta(days=30)},
-        current_app.config['SECRET_KEY'],
-        algorithm="HS256"
-    )
-    return refresh_token
-
-
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

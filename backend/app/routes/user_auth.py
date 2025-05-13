@@ -6,7 +6,7 @@ from datetime import datetime
 from ..models.category import Category
 from ..models.user import User
 from ..db import get_db
-from .common_auth import token_required, generate_refresh_token
+from .common_auth import token_required
 from ..services.article_service import ArticleService
 import jwt
 from datetime import datetime, timedelta
@@ -73,16 +73,12 @@ def login():
         current_app.config['SECRET_KEY'], algorithm="HS256"
     )
 
-    # Générer refresh token
-    refresh_token = generate_refresh_token(user["_id"])
-
     user_data = {key: value for key, value in user.items() if key != "password"}
 
     return jsonify({
         "message": "Connexion réussie",
         "user": user_data,
         "access_token": access_token,
-        "refresh_token": refresh_token  # Nouveau champ ajouté
     }), 200
 
 @bp.route('/profile', methods=['GET'])
