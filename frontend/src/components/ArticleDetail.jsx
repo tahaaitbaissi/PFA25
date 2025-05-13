@@ -1,258 +1,243 @@
-import React, { useState, useEffect } from 'react'; // Import useEffect
-import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
-import axios from 'axios'; // Import axios
-import "./styles/ArticleDetail.css";
-import { CircularProgress } from '@mui/material'; // Import CircularProgress for loading
+import React, { useState, useEffect, useContext } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { AuthContext } from '../context/AuthContext';
+import './styles/ArticleDetail.css';
+import { CircularProgress } from '@mui/material';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
-const ArticleDetail = () => { // Removed 'articles' prop as data will be fetched
+const ArticleDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // For redirection if article not found
-  const [article, setArticle] = useState(null); // State to hold fetched article data
-  const [loading, setLoading] = useState(true); // State for loading indicator
-  const [error, setError] = useState(null); // State for error handling
-
-  // Local state for comments - Note: This is client-side only as no backend endpoints provided for comments
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [article, setArticle] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
-  // const [commentAuthor, setCommentAuthor] = useState(''); // Commented out as in original code
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [showComments, setShowComments] = useState(true);
 
-  const API_URL = 'http://localhost:5000/articles'; // Base URL for article endpoints
+  const API_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
-    const fetchArticle = async () => {
+    const fetchData = async () => {
       try {
-        setLoading(true); // Start loading
-        const response = await axios.get(`${API_URL}/${id}`);
-        console.log(response);
-        setArticle(response.data);
-        // Assuming the fetched article data includes a 'comments' array
-        setComments(response.data.comments || []); // Initialize local comments state
-        setError(null); // Clear any previous errors
+        const [articleRes, commentsRes] = await Promise.all([
+          axios.get(`${API_URL}/articles/${id}`),
+          axios.get(`${API_URL}/comments/${id}`)
+        ]);
+        
+        setArticle(articleRes.data);
+        setComments(commentsRes.data.comments);
       } catch (err) {
-        console.error("Error fetching article:", err);
-        setError("Impossible de charger l'article."); // Set error message
-        setArticle(null); // Clear article data
-        // Optionally redirect if article not found (e.g., 404 error)
-        if (err.response && err.response.status === 404) {
-             navigate('/not-found'); // Redirect to a not-found page
-        }
+        setError(err.response?.data?.error || 'Erreur de chargement des données');
+        if (err.response?.status === 404) navigate('/404');
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     };
 
-    if (id) { // Only fetch if id is available
-      fetchArticle();
-    }
+    fetchData();
+  }, [id, navigate, API_URL]);
 
-  }, [id, navigate, API_URL]); // Rerun effect if id changes
-
-  // Handle adding a comment (still client-side)
-  const handleAddComment = (e) => {
+  const handleAddComment = async (e) => {
     e.preventDefault();
-    // Using a placeholder author since the input is commented out
-    const author = "Anonyme"; // Or get from authenticated user if available globally
-    if (newComment.trim() && author.trim()) {
-      const comment = {
-        // Generate a unique ID for the comment (client-side only)
-        id: Date.now(),
-        author: author,
-        content: newComment.trim(),
-        date: new Date().toISOString() // Use ISO string for consistent date format
-      };
-      setComments([...comments, comment]);
-      setNewComment('');
-      // setCommentAuthor(''); // Commented out
-      // Note: To make comments persistent, you would need a backend endpoint here
-      // to save the new comment to the database.
-    }
-  };
-
-  // Format date function
-  const formatDate = (dateInput) => {
-    // Handle potential date formats from backend, including the $date object
-    let dateString;
-    if (dateInput && typeof dateInput === 'object' && dateInput.$date) {
-        dateString = dateInput.$date;
-    } else if (typeof dateInput === 'string') {
-        dateString = dateInput;
-    } else {
-        return "Date invalide"; // Handle unexpected date formats
-    }
+    if (!newComment.trim()) return;
 
     try {
-      const options = {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      };
-      return new Date(dateString).toLocaleDateString('fr-FR', options);
-    } catch (e) {
-      console.error("Error formatting date:", e);
-      return "Date invalide"; // Return error message if date parsing fails
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API_URL}/comments/add`,
+        { article_id: id, content: newComment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setComments([...comments, response.data.comment]);
+      setNewComment('');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Échec de l\'ajout du commentaire');
     }
   };
 
-  // Render loading state
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/comments/delete/${commentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setComments(comments.filter(comment => comment._id !== commentId));
+    } catch (err) {
+      setError(err.response?.data?.error || 'Échec de la suppression du commentaire');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    try {
+      return format(new Date(dateString), 'd MMM yyyy à HH:mm', { locale: fr });
+    } catch {
+      return 'Date inconnue';
+    }
+  };
+
   if (loading) {
     return (
-      <div className="article-detail loading">
+      <div className="loading-container">
         <CircularProgress />
-        <p>Chargement de l'article...</p>
+        <p>Chargement en cours...</p>
       </div>
     );
   }
 
-  // Render error state
   if (error) {
-    return (
-      <div className="article-detail error">
-        <p>{error}</p>
-      </div>
-    );
+    return <div className="error-message">{error}</div>;
   }
 
-  // Render article not found state (after loading and no error, but article is null)
   if (!article) {
-    return <div className="article-detail not-found">Article non trouvé</div>;
+    return <div className="not-found">Article non trouvé</div>;
   }
 
-  // Render article details
   return (
-    <div className="article-detail">
-      <h1>{article.title}</h1>
-      {/* Add a check for article.image before rendering */}
-      {article.image && <img src={article.image} alt={article.title} className="detail-image" />}
-      <div className="article-meta">
-        {/* Assuming author might be available in fetched data */}
-        {/* {article.author && <span>Publié par: {article.author}</span>} */}
-        {/* Access $date property if date_soumission is an object */}
-        <span>Date: {formatDate(article.date_soumission)}</span>
-        {/* Ensure ai_score is a number beforetoFixed */}
-        <span>Score IA: {typeof article.ai_score === 'number' ? (article.ai_score * 100).toFixed(0) : 'N/A'}%</span>
-      </div>
-      <div className="article-content">
-        {/* Render HTML content if needed, otherwise use p tags */}
-        {/* <div dangerouslySetInnerHTML={{ __html: article.content }} /> */}
-        <p>{article.content}</p>
-        {/* Add checks before rendering summary and keywords */}
-        {article.summary && (
-          <>
-            <h3>Résumé:</h3>
-            <p>{article.summary}</p>
-          </>
+    <div className="article-detail-container">
+      <article className="main-article">
+        <h1 className="article-title">{article.title}</h1>
+        
+        {article.image && (
+          <img 
+            src={article.image} 
+            alt={article.title} 
+            className="article-image"
+            onError={(e) => e.target.style.display = 'none'}
+          />
         )}
-        {article.keywords?.length > 0 && (
-          <>
-            <h3>Mots-clés:</h3>
-            <ul className="keywords-list">
-              {/* Use keyword string as key, assuming keywords are strings */}
-              {article.keywords.map((keyword, index) => (
-                <li key={keyword || index} className="keyword-item">{keyword}</li>
-              ))}
-            </ul>
-          </>
-        )}
-      </div>
-      {/* Add a check for source_url before rendering */}
-      {article.source_url && (
-        <a href={article.source_url} target="_blank" rel="noopener noreferrer" className="original-article-link">
-          Lire l'article original
-        </a>
-      )}
 
+        <div className="article-meta">
+          <span className="publication-date">
+            {formatDate(article.date_soumission)}
+          </span>
+          <span className="ai-score">
+            Fiabilité IA : {(article.ai_score * 100).toFixed(0)}%
+          </span>
+        </div>
 
-      <div className="section-switcher">
-        <button
-          className={`switch-button ${showComments ? 'active' : ''}`}
-          onClick={() => setShowComments(true)}
-        >
-          Commentaires ({comments.length})
-        </button>
-        <button
-          className={`switch-button ${!showComments ? 'active' : ''}`}
-          onClick={() => setShowComments(false)}
-        >
-          Discussions Reddit ({article.related_reddit_posts?.length || 0})
-        </button>
-      </div>
-
-      {showComments ? (
-        <div className="comments-section">
-          {comments.length === 0 ? (
-            <p className="no-comments">Soyez le premier à commenter cet article</p>
-          ) : (
-            <div className="comments-list">
-              {/* Use comment.id as key */}
-              {comments.map((comment) => (
-                <div key={comment.id} className="comment">
-                  <div className="comment-content">
-                    <p>{comment.content}</p>
-                  </div>
-                  <div className="comment-meta">
-                    <span className="comment-author">{comment.author}</span>
-                    <span className="comment-date">{formatDate(comment.date)}</span>
-                  </div>
-                </div>
-              ))}
+        <div className="article-content">
+          <p className="article-text">{article.content}</p>
+          
+          {article.summary && (
+            <div className="article-summary">
+              <h3>Résumé :</h3>
+              <p>{article.summary}</p>
             </div>
           )}
 
-          <form onSubmit={handleAddComment} className="comment-form">
-            {/* Comment author input is commented out */}
-{/* <div className="form-group">
-              <input
-                type="text"
-                value={commentAuthor}
-                onChange={(e) => setCommentAuthor(e.target.value)}
-                placeholder="Votre nom"
-                required
-                className="author-input"
-              />
-            </div> */}
-            <div className="form-group">
+          {article.keywords?.length > 0 && (
+            <div className="keywords-section">
+              <h3>Mots-clés :</h3>
+              <div className="keywords-list">
+                {article.keywords.map((keyword, index) => (
+                  <span key={index} className="keyword-tag">{keyword}</span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {article.source_url && (
+          <a
+            href={article.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="source-link"
+          >
+            Lire l'article original
+          </a>
+        )}
+      </article>
+
+      <div className="interaction-section">
+        <div className="section-switcher">
+          <button
+            className={`switch-button ${showComments ? 'active' : ''}`}
+            onClick={() => setShowComments(true)}
+          >
+            Commentaires ({comments.length})
+          </button>
+          <button
+            className={`switch-button ${!showComments ? 'active' : ''}`}
+            onClick={() => setShowComments(false)}
+          >
+            Discussions Reddit ({article.related_reddit_posts?.length || 0})
+          </button>
+        </div>
+
+        {showComments ? (
+          <div className="comments-section">
+            {comments.length === 0 ? (
+              <p className="no-comments">Aucun commentaire pour le moment</p>
+            ) : (
+              <div className="comments-list">
+                {comments.map((comment) => (
+                  <div key={comment._id} className="comment-card">
+                    <div className="comment-header">
+                      <span className="comment-author">{comment.author?.username || 'Anonyme'}</span>
+                      <span className="comment-date">{formatDate(comment.created_at)}</span>
+                    </div>
+                    <p className="comment-content">{comment.content}</p>
+                    {user?._id === comment.user_id && (
+                      <button
+                        onClick={() => handleDeleteComment(comment._id)}
+                        className="delete-comment-button"
+                      >
+                        Supprimer
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={handleAddComment} className="comment-form">
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Votre commentaire..."
-                required
-                className="comment-textarea"
+                placeholder="Écrivez votre commentaire..."
+                className="comment-input"
                 rows="4"
+                required
               />
-            </div>
-            <button type="submit" className="submit-comment">
-              Publier le commentaire
-            </button>
-          </form>
-        </div>
-      ) : (
-        <div className="reddit-posts">
-          {article.related_reddit_posts?.length > 0 ? ( // Add check for length
-            article.related_reddit_posts.map((post, index) => (
-              <div key={post.url || index} className="reddit-post"> {/* Use post.url as key if unique, fallback to index */}
+              <button type="submit" className="submit-comment-button">
+                Publier
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="reddit-posts-section">
+            {article.related_reddit_posts?.length > 0 ? (
+              article.related_reddit_posts.map((post, index) => (
                 <a
+                  key={index}
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="reddit-post-link"
+                  className="reddit-post-card"
                 >
-                  <h4>{post.title}</h4>
-                  <div className="reddit-meta">
-                    <span>r/{post.subreddit}</span>
-                    <span>▲ {post.upvotes} upvotes</span>
-                    <span>💬 {post.comments} commentaires</span>
+                  <h4 className="reddit-post-title">{post.title}</h4>
+                  <div className="reddit-post-meta">
+                    <span className="subreddit">r/{post.subreddit}</span>
+                    <div className="engagement-metrics">
+                      <span className="upvotes">▲ {post.upvotes}</span>
+                      <span className="comments">💬 {post.comments}</span>
+                    </div>
                   </div>
                 </a>
-              </div>
-            ))
-          ) : (
-            <p className="no-reddit-posts">Aucune discussion Reddit trouvée pour cet article.</p>
-          )}
-        </div>
-      )}
+              ))
+            ) : (
+              <p className="no-reddit-posts">Aucune discussion Reddit trouvée</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

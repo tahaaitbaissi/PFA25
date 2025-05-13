@@ -405,3 +405,23 @@
   color: #ff4500;
   font-weight: 500;
 }
+
+.delete-comment-btn {
+  background: none;
+  border: none;
+  color: #ff4444;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: auto;
+  padding: 0 5px;
+}
+
+.delete-comment-btn:hover {
+  text-decoration: underline;
+}
+
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
