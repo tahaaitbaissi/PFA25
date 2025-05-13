@@ -10,9 +10,11 @@ from .. import socketio
 
 bp = Blueprint('bookmark', __name__, url_prefix='/bookmark')
 
-@bp.route('/add', methods=['POST'])
+@bp.route('/add', methods=['POST', 'OPTIONS'])
 @token_required
 def add_bookmark(current_user):
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
     data = request.get_json()
     article_id = data.get('article_id')
 
@@ -43,9 +45,11 @@ def add_bookmark(current_user):
 
     return jsonify({"message": "Article ajouté aux favoris"}), 201
 
-@bp.route('/list', methods=['GET'])
+@bp.route('/list', methods=['GET', 'OPTIONS'])
 @token_required
 def list_bookmarks(current_user):
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
     bookmarks = Bookmark.get_user_bookmarks(current_user["_id"])
     formatted = [{
         "article_id": str(b['article_id']),
@@ -54,9 +58,11 @@ def list_bookmarks(current_user):
 
     return jsonify({"bookmarks": formatted}), 200
 
-@bp.route('/remove', methods=['DELETE'])
+@bp.route('/remove', methods=['DELETE', 'OPTIONS'])
 @token_required
 def remove_bookmark(current_user):
+    if request.method == 'OPTIONS':
+        return _build_cors_preflight_response()
     data = request.get_json()
     article_id = data.get('article_id')
 
@@ -68,3 +74,12 @@ def remove_bookmark(current_user):
         return jsonify({"message": "Favori supprimé"}), 200
     else:
         return jsonify({"error": "Favori non trouvé"}), 404
+    
+
+def _build_cors_preflight_response():
+    response = jsonify({"message": "CORS preflight"})
+    response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
+    response.headers.add("Access-Control-Allow-Headers", "*")
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    return response

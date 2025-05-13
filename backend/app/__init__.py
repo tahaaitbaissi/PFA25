@@ -33,11 +33,15 @@ def create_app(config_class=DevelopmentConfig):
     # CORS(app, resources={r"/*": {"origins": "*"}}, methods={"PUT", "GET", "POST", "DELETE"})
     CORS(app, resources={
         r"/*": {
-            "origins": "*",
+            "origins": "http://localhost:5173",
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "allow_headers": ["Content-Type", "Authorization", "Accept"],
+            "supports_credentials": True,
+            "expose_headers": ["Content-Type"],
+            "max_age": 600
         }
     })
+
 
     # Initialize database
     db.init_app(app)

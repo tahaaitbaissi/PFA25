@@ -30,6 +30,9 @@ const Navbar = ({ notifications = [] }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
 
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [initialUnreadCount, setInitialUnreadCount] = useState(0);
+
   const navigate = useNavigate();
 
   const handleSearch = async (e) => {
@@ -91,10 +94,50 @@ const Navbar = ({ notifications = [] }) => {
 
   // Combine prop notifications (initial load) and socket notifications (real-time)
   const allNotifications = [...notifications, ...socketNotifications];
-  const unreadNotificationsCount = allNotifications.filter(n => !n.is_read).length; // Use backend field name 'is_read'
-
+  
   // Ref to keep track of the popup timer ID
   const popupTimerRef = useRef(null);
+  
+  useEffect(() => {
+    const fetchInitialUnreadCount = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setInitialUnreadCount(0); // Cannot fetch if not logged in
+          return;
+        }
+      try {
+        // Assuming your new backend endpoint is GET /notifications/unread_count
+        const response = await axios.get(`${API_URL}/notifications/unread_count`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        // Assuming the response is like { "unread_count": 5 }
+        setInitialUnreadCount(response.data.unread_count || 0);
+      } catch (error) {
+        console.error("Error fetching initial unread count:", error);
+        // Handle errors (e.g., token expired - though your main effect handles redirect)
+        setInitialUnreadCount(0); // Default to 0 on error
+      }
+    };
+    
+    fetchInitialUnreadCount();
+    
+  }, []); // Empty dependency array: runs once on mount
+        
+  const unreadNotificationsCount = initialUnreadCount + socketNotifications.filter(n => !n.is_read).length;
+  
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+        try {
+            // Parse the stored user JSON
+            setLoggedInUser(JSON.parse(storedUser)) ;
+        } catch (e) {
+            console.error("Failed to parse user from localStorage:", e);
+            // Handle potential parsing errors if localStorage contains invalid JSON
+            localStorage.removeItem('user'); // Clear potentially corrupt data
+        }
+    }
+  }, []);
 
   // Effect to handle incoming socket notifications and trigger the popup
   useEffect(() => {
@@ -237,16 +280,16 @@ const Navbar = ({ notifications = [] }) => {
 
         <div className="user-profile" onClick={() => setShowMenu(!showMenu)}>
           <FaUserCircle className="user-icon" />
-          <span>Utilisateur</span>
+          <span>{loggedInUser ? loggedInUser.username : 'Utilisateur'}</span>
         </div>
 
         {showMenu && (
           <div className="profile-menu">
-            <Link to="/profil" className="menu-item">
+            <Link to="/profil" className="menu-item" onClick={() => setShowMenu(false)}>
               <FaUserCircle className="menu-icon" />
               <p>Profil</p>
             </Link>
-            <div className="menu-item" onClick={handleLogout}>
+            <div className="menu-item" onClick={() => { handleLogout(); setShowMenu(false); }}>
               <FaSignOutAlt className="menu-icon" />
               <p>Déconnexion</p>
             </div>

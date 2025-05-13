@@ -23,6 +23,10 @@
     overflow: hidden;
     transition: transform 0.3s ease;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: white;
 }
 
 .article-card:hover {
@@ -33,24 +37,64 @@
 .article-link {
     text-decoration: none;
     color: inherit;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+    color: #333;
 }
 
 .article-image {
     width: 100%;
-    height: 200px;
+    height: 160px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.article-image img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.article-card:hover .article-image img {
+    transform: scale(1.05);
 }
 
 .article-content {
-    padding: 18px;
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.article-content h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    color: #2c3e50;
+}
+
+.article-content p.excerpt {
+    margin: 0 0 12px 0;
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .article-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
+    margin-top: auto;
 }
 
 .ai-score {
@@ -59,22 +103,25 @@
     background-color: #f0f0f0;
     border-radius: 4px;
     font-size: 0.9em;
+    color: #333;
 }
 
 .bookmark-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #ccc;
-  transition: color 0.3s ease;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 1.2em;
+    transition: color 0.3s ease;
+    padding: 5px;
 }
 
 .bookmark-button:hover {
-  color: #ffd700;
+    color: #2c3e50;
 }
 
 .bookmark-button.bookmarked {
-  color: #ffd700;
+    color: #FFD700;
 }
 
 .add-post-button {
@@ -94,10 +141,6 @@
     background-color: #1a252f;
 }
 
-/* ArticleList.css */
-
-/* ... autres styles existants ... */
-
 .add-post-form-overlay {
     position: fixed;
     top: 0;
@@ -111,14 +154,14 @@
     align-items: center;
     z-index: 1000;
     animation: fadeIn 0.3s ease;
-  }
-  
-  @keyframes fadeIn {
+}
+
+@keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-  
-  .add-post-form {
+}
+
+.add-post-form {
     background: white;
     padding: 2.5rem;
     border-radius: 16px;
@@ -128,16 +171,17 @@
     position: relative;
     transform: translateY(-20px);
     animation: slideUp 0.3s ease forwards;
-  }
-  
-  @keyframes slideUp {
+    opacity: 0;
+}
+
+@keyframes slideUp {
     to {
-      transform: translateY(0);
-      opacity: 1;
+        transform: translateY(0);
+        opacity: 1;
     }
-  }
-  
-  .close-form-button {
+}
+
+.close-form-button {
     position: absolute;
     top: 1.5rem;
     right: 1.5rem;
@@ -147,33 +191,35 @@
     font-size: 1.5rem;
     color: #666;
     transition: color 0.2s ease;
-  }
-  
-  .close-form-button:hover {
+    z-index: 1001;
+}
+
+.close-form-button:hover {
     color: #333;
-  }
-  
-  .add-post-form h2 {
+}
+
+.add-post-form h2 {
+    margin-top: 0;
     margin-bottom: 2rem;
     color: #2c3e50;
     font-size: 1.8rem;
     text-align: center;
-  }
-  
-  .form-group {
+}
+
+.form-group {
     margin-bottom: 1.8rem;
-  }
-  
-  .form-group label {
+}
+
+.form-group label {
     display: block;
     margin-bottom: 0.8rem;
     font-weight: 500;
     color: #34495e;
     font-size: 0.95rem;
-  }
-  
-  .form-group input,
-  .form-group textarea {
+}
+
+.form-group input,
+.form-group textarea {
     width: 100%;
     padding: 1rem;
     border: 2px solid #e0e0e0;
@@ -181,22 +227,23 @@
     font-size: 1rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: #f8f9fa;
-  }
-  
-  .form-group input:focus,
-  .form-group textarea:focus {
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
     border-color: #4CAF50;
     background: white;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     outline: none;
-  }
-  
-  .form-group textarea {
+}
+
+.form-group textarea {
     resize: vertical;
     min-height: 120px;
-  }
-  
-  .submit-post-button {
+}
+
+.submit-post-button {
     background-color: #4CAF50;
     color: white;
     padding: 1.2rem 2rem;
@@ -210,75 +257,115 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 1rem;
-  }
-  
-  .submit-post-button:hover {
+}
+
+.submit-post-button:hover {
     background-color: #45a049;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .add-post-form {
-      padding: 1.5rem;
-      border-radius: 12px;
-    }
-    
-    .add-post-form h2 {
-      font-size: 1.5rem;
-    }
-    
-    .form-group input,
-    .form-group textarea {
-      padding: 0.8rem;
-    }
-  }
-
-.bookmark-button {
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  font-size: 1.2em;
-  transition: color 0.3s ease;
-  padding: 5px;
 }
 
-.bookmark-button:hover {
-  color: #2c3e50;
+.form-group.image-upload input[type="file"] {
+    display: none;
 }
 
-.bookmark-button.bookmarked {
-  color: #FFD700; /* Gold color for bookmarked state */
+.form-group.image-upload label {
+    display: inline-block;
+    background-color: #556270;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.form-group.image-upload label:hover {
+    background-color: #414b55;
+}
+
+.image-preview {
+    margin-top: 1rem;
+    max-width: 100%;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.error-banner {
+    color: #d32f2f;
+    background-color: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    text-align: center;
+    color: #666;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .empty-state {
-  text-align: center;
-  padding: 2rem;
-  grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    grid-column: 1 / -1;
 }
 
 .empty-state h3 {
-  color: #333;
-  margin-bottom: 0.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
 }
 
 .empty-state p {
-  color: #666;
+    color: #666;
 }
 
-.error-message {
-  color: #d32f2f;
-  background-color: #ffebee;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
+@media (max-width: 768px) {
+    .add-post-form {
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
 
-.loading {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-  color: #666;
+    .add-post-form h2 {
+        font-size: 1.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 0.8rem;
+    }
+
+    .form-group label {
+        margin-bottom: 0.5rem;
+    }
+
+    .image-preview {
+        margin-top: 0.5rem;
+    }
 }
