@@ -233,7 +233,7 @@ const Navbar = ({ notifications = [] }) => {
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <div className="logo">FakeNews</div>
+        <div className="logo">News Guard</div>
       </div>
 
       <div className="navbar-center">

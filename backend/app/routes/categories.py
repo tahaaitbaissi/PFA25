@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from bson import ObjectId
 from ..models.category import Category
 from ..models.user import User
+from ..models.user_category import UserCategory
 from .common_auth import token_required,admin_required
 from ..db import get_db
 
@@ -56,7 +57,9 @@ def add_user_category(current_user):
         return jsonify({"error": "Category not found"}), 404
 
     User.add_category(current_user["_id"], category_id)
+    UserCategory.add_category_to_user(current_user["_id"], category_id)
     return jsonify({"message": "Category added to user"}), 201
+
 
 
 @bp.route('/user/<category_id>', methods=['DELETE'])
@@ -64,6 +67,8 @@ def add_user_category(current_user):
 def remove_user_category(current_user, category_id):
     if not Category.get_by_id(category_id):
         return jsonify({"error": "Category not found"}), 404
+    
+    UserCategory.remove_category_from_user(current_user["_id"], category_id)
 
     if User.remove_category(current_user["_id"], category_id):
         return jsonify({"message": "Category removed from user"}), 200

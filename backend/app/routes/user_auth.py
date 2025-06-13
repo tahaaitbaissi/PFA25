@@ -5,6 +5,7 @@ from datetime import datetime
 
 from ..models.category import Category
 from ..models.user import User
+from ..models.user_category import UserCategory
 from ..db import get_db
 from .common_auth import token_required
 from ..services.article_service import ArticleService
@@ -45,6 +46,7 @@ def register():
 
         # Add to user
         User.add_category(user_id, category_id)
+        UserCategory.add_category_to_user(user_id, category_id)
 
     return jsonify({"message": "Utilisateur enregistré avec succès", "user_id": str(user_id)}), 201
 

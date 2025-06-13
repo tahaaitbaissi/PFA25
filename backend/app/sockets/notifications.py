@@ -26,7 +26,7 @@ def register_notification_handlers(socketio):
 #     room = f"user_{user_id}"
 #     emit('new_notification', notification_data, room=room)
 def send_notification(socketio, user_id, notification_data):
-    room = f"user_{user_id}"
+    # room = f"user_{user_id}"
     # Ensure user_id is a string when creating the room name
     room = f"user_{str(user_id)}"
     socketio.emit('new_notification', notification_data, room=room)

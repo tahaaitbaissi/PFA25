@@ -78,26 +78,31 @@ function Profile() {
           console.log('Fetching profile and categories...'); // Debug log
 
           // Use Promise.all to fetch both profile and the full list of categories
-          const [profileResponse, categoriesResponse] = await Promise.all([
-             // Fetch user profile - requires token
+          const [profileResponse, categoriesResponse, userCategoriesResponse] = await Promise.all([
+            // Fetch user profile - requires token
             axios.get(`${API_URL}/user_auth/profile`, {
               headers: { Authorization: `Bearer ${token}` }
             }),
-            // Fetch the list of all categories - this route typically does NOT require a token
-            // *** THIS IS THE CALL CAUSING THE CORS ERROR AND THUS THE REDIRECT ***
+            // Fetch the list of all categories
             axios.get(`${API_URL}/categories`, {
-                // The /categories GET route should be publicly accessible and not require auth
-                // Sending the token here might be unnecessary but shouldn't cause the CORS preflight redirect itself
-                // The backend's failure to handle OPTIONS for this specific route is the issue.
-               // headers: { Authorization: `Bearer ${token}` } // You might not need auth header for GET /categories
+                // headers: { Authorization: `Bearer ${token}` } // Optional for this public route
+            }),
+            // *** Add this new call to fetch user's specific categories ***
+            axios.get(`${API_URL}/categories/user`, {
+              headers: { Authorization: `Bearer ${token}` } // This route requires token
             })
           ]);
 
           console.log('Profile response:', profileResponse); // Debug log
           console.log('Categories response:', categoriesResponse); // Debug log
+          console.log('userCategories response:', userCategoriesResponse); // Debug log
 
+          
           // Set the user state with the profile data (should contain category objects)
-          setUser(profileResponse.data.user);
+          setUser({
+              ...profileResponse.data.user, // Keep username, email, role, points from profile response
+              categories: userCategoriesResponse.data // Use the categories array from the /categories/user response
+          });
 
           // Set the list of all available categories for the dropdown
           // Ensure categoriesResponse.data is an array before setting state
@@ -141,7 +146,7 @@ function Profile() {
       email: user?.email || '',
       // Map the user's selected category objects (from user state) to their _id's
       // The MUI Select component needs the array of values to match the MenuItem 'value'
-      categories: user?.categories ? user.categories.map(cat => cat._id) : []
+      categories: user?.categories ? user.categories.map(cat => cat.category_id) : []
     },
     validationSchema: profileValidationSchema,
     onSubmit: async (values) => {
@@ -401,7 +406,7 @@ function Profile() {
                 <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
                   {/* Map over user's category objects to display Chip labels */}
                   {user.categories.map((cat) => (
-                    <Chip key={cat._id || cat.label} label={cat.label || cat} size="small" /> // Use _id as key if available, fallback to label
+                    <Chip key={cat.category_id} label={cat.label} size="small" />
                   ))}
                 </Box>
               ) : 'Aucune catégorie sélectionnée'} {/* Handle case with no categories */}
